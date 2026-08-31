@@ -1,0 +1,84 @@
+services:
+  cepe:
+    build: .
+    image: cepe:latest
+    container_name: cepe
+    ports:
+      - "8000:80"
+    depends_on:
+      - mariadb
+    networks:
+      - cepe-network
+    volumes:
+      - ./:/var/www/html
+    environment:
+      HOME: /tmp
+    user: "${UID:-1000}:${GID:-1000}"
+
+  mariadb:
+    image: mariadb:11
+    container_name: cepe_mariadb
+    restart: always
+    environment:
+      MYSQL_DATABASE: cepe
+      MYSQL_USER: cepe
+      MYSQL_PASSWORD: cepe
+      MYSQL_ROOT_PASSWORD: cepe
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - cepe-network
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: cepe_phpmyadmin
+    restart: always
+    depends_on:
+      - mariadb
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mariadb
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: cepe
+    networks:
+      - cepe-network
+      
+  selenium:
+    image: selenium/standalone-chrome
+    container_name: cepe_selenium
+    ports:
+      - "7900:7900"
+    networks:
+      - cepe-network
+    shm_size: 2gb
+
+  # No /etc/hosts do seu computador colocar a linha `127.0.0.1 auth.local` 
+  # particularidades do protocolo oAuth1 usado na USP
+  senhaunica-faker:
+    image: uspdev/senhaunica-faker
+    container_name: cepe_senhaunica-faker
+    ports:
+      - "3141:3141"
+    environment:
+          - APP_URL=http://auth.local:3141
+    networks:
+      cepe-network:
+        aliases:
+          - auth.local
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: cepe_mailpit
+    ports:
+      - "1025:1025"   # SMTP
+      - "8025:8025"   # Interface Web
+    networks:
+      - cepe-network
+
+networks:
+  cepe-network:
+
+volumes:
+  mariadb_data:
