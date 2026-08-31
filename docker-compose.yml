@@ -44,7 +44,7 @@ services:
       PMA_PASSWORD: cepe
     networks:
       - cepe-network
-      
+
   selenium:
     image: selenium/standalone-chrome
     container_name: cepe_selenium
@@ -70,7 +70,7 @@ services:
 
   mailpit:
     image: axllent/mailpit:latest
-    container_name: cepe_mailpit
+    container_name: cepe__mailpit
     ports:
       - "1025:1025"   # SMTP
       - "8025:8025"   # Interface Web

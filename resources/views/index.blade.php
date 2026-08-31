@@ -1,1 +1,5 @@
-@extends('laravel-usp-theme::master')
+@extends('layout')
+
+@section('content')
+Starter Next Generation
+@endsection
