@@ -1,5 +1,5 @@
 @extends('layout')
 
 @section('content')
-Starter Next Generation
+CEPE USP inscrições
 @endsection
