@@ -2,37 +2,41 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\IndexController;
-
 use App\Http\Controllers\AtividadeController;
 use App\Http\Controllers\OferecimentoController;
 use App\Http\Controllers\TurmaController;
 
-Route::get('/', [IndexController::class, 'index']);
+Route::get('/', [IndexController::class, 'index'])->name('home');
 
-# atividades
-Route::get('/atividades', [AtividadeController::class, 'index']);
-Route::get('/atividades/create', [AtividadeController::class, 'create']);
-Route::post('/atividades', [AtividadeController::class, 'store']);
-Route::get('/atividades/{atividade}', [AtividadeController::class, 'show']);
-Route::get('/atividades/{atividade}/edit', [AtividadeController::class, 'edit']);
-Route::patch('/atividades/{atividade}', [AtividadeController::class, 'update']);
-Route::delete('/atividades/{atividade}', [AtividadeController::class, 'destroy']);
+// Atividades
+Route::controller(AtividadeController::class)->prefix('atividades')->name('atividades.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/{atividade}', 'show')->name('show');
+    Route::get('/{atividade}/edit', 'edit')->name('edit');
+    Route::patch('/{atividade}', 'update')->name('update');
+    Route::delete('/{atividade}', 'destroy')->name('destroy');
+});
 
+// Oferecimentos
+Route::controller(OferecimentoController::class)->prefix('oferecimentos')->name('oferecimentos.')->group(function () {
+    Route::get('/{atividade}/create', 'create')->name('create');
+    
+    // Route::post('/', 'store')->name('store');
+    // Route::get('/{oferecimento}', 'show')->name('show');
+    // Route::get('/{oferecimento}/edit', 'edit')->name('edit');
+    // Route::patch('/{oferecimento}', 'update')->name('update');
+    // Route::delete('/{oferecimento}', 'destroy')->name('destroy');
+});
 
-# oferecimentos
-Route::get('/oferecimentos/{atividade}/create', [OferecimentoController::class, 'create']);
-
-#Route::post('/oferecimentos', [OferecimentoController::class, 'store']);
-#Route::get('/oferecimentos/{oferecimento}', [OferecimentoController::class, 'show']);
-#Route::get('/oferecimentos/{oferecimento}/edit', [OferecimentoController::class, 'edit']);
-#Route::patch('/oferecimentos/{oferecimento}', [OferecimentoController::class, 'update']);
-#Route::delete('/oferecimentos/{oferecimento}', [OferecimentoController::class, 'destroy']);
-
-
-Route::get('/turmas', [TurmaController::class, 'index']);
-Route::get('/turmas/create', [TurmaController::class, 'create']);
-Route::post('/turmas', [TurmaController::class, 'store']);
-Route::get('/turmas/{turma}', [TurmaController::class, 'show']);
-Route::get('/turmas/{turma}/edit', [TurmaController::class, 'edit']);
-Route::patch('/turmas/{turma}', [TurmaController::class, 'update']);
-Route::delete('/turmas/{turma}', [TurmaController::class, 'destroy']);
+// Turmas
+Route::controller(TurmaController::class)->prefix('turmas')->name('turmas.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/create', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/{turma}', 'show')->name('show');
+    Route::get('/{turma}/edit', 'edit')->name('edit');
+    Route::patch('/{turma}', 'update')->name('update');
+    Route::delete('/{turma}', 'destroy')->name('destroy');
+});

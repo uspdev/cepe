@@ -16,4 +16,9 @@ class Oferecimento extends Model
     {
         return $this->belongsTo(Atividade::class);
     }
+
+    public function turmas()
+    {
+        return $this->hasMany(Turma::class);
+    }
 }

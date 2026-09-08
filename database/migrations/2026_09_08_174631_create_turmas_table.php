@@ -14,7 +14,9 @@ return new class extends Migration
         Schema::create('turmas', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->string('oferecimento_id');
+
+            $table->unsignedBigInteger('oferecimento_id')->nullable();
+            $table->foreign('oferecimento_id')->references('id')->on('oferecimentos')->nullOnDelete();
 
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();

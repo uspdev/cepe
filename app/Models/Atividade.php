@@ -16,5 +16,4 @@ class Atividade extends Model
     {
         return $this->hasMany(Oferecimento::class);
     }
-
 }

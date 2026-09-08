@@ -11,4 +11,9 @@ class Turma extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function oferecimento()
+    {
+        return $this->belongsTo(Oferecimento::class);
+    }
 }
