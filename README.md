@@ -6,5 +6,5 @@ Dev:
     docker compose up --build
     docker exec -it cepe composer install
     docker exec -it cepe php artisan key:generate
-    docker exec -it cepe php artisan migrate
+    docker exec -it cepe php artisan migrate:fresh
 

@@ -23,15 +23,14 @@ $admin = [
     ],
 ];
 
-$submenu2 = [
+$atividades = [
     [
-        'text' => 'SubItem 1',
-        'url' => 'subitem1',
+        'text' => 'Listar',
+        'url' => '/atividades',
     ],
     [
-        'text' => 'SubItem 2',
-        'url' => 'subitem2',
-        'can' => 'admin',
+        'text' => 'Cadastrar',
+        'url' => '/atividades/create',
     ],
 ];
 
@@ -45,8 +44,8 @@ $menu = [
         'key' => 'menu_dinamico',
     ],
     [
-        'text' => 'Drop Down',
-        'submenu' => $submenu2,
+        'text' => 'Atividades',
+        'submenu' => $atividades,
         'can' => '',
     ],
     [

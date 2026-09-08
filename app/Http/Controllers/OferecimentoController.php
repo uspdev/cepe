@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use App\Models\Oferecimento;
+use App\Models\Atividade;
+
+use App\Http\Requests\OferecimentoRequest;
+
+class OferecimentoController extends Controller
+{
+    public function index(Request $request){
+        if($request->has('search')){
+            $oferecimentos = Oferecimento::where('atividade_id','like','%'.$request->search.'%')->get();
+        } else {
+            $oferecimentos = Oferecimento::all();
+        }
+
+        return view('oferecimentos.index',[
+            'oferecimentos' => $oferecimentos
+        ]);
+    }
+
+    public function create(Atividade $atividade){
+        return view('oferecimentos.create',[
+                'atividade' => $atividade
+            ]
+        );
+    }
+
+    public function store(OferecimentoRequest $request){
+        $oferecimento = new Oferecimento;
+        $oferecimento->atividade_id = $request->atividade_id;
+        
+        $oferecimento->user_id = auth()->id();
+        $oferecimento->save();
+        return redirect('/oferecimentos');
+    }
+
+    public function show(Oferecimento $oferecimento){
+        return view('oferecimentos.show',[
+            'oferecimento' => $oferecimento
+        ]);
+    }
+
+    public function edit(Oferecimento $oferecimento){
+        return view('oferecimentos.edit',[
+            'oferecimento' => $oferecimento
+        ]);
+    }
+
+    public function update(OferecimentoRequest $request, Oferecimento $oferecimento){
+        $oferecimento->atividade_id = $request->atividade_id;
+        
+        $oferecimento->user_id = auth()->id();
+        $oferecimento->save();
+        return redirect("/oferecimentos/{$oferecimento->id}");
+    }
+
+    public function destroy(Oferecimento $oferecimento)
+    {
+        $oferecimento->delete();
+        return redirect('/oferecimentos');
+    }
+}
