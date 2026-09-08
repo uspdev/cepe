@@ -22,9 +22,8 @@ Route::controller(AtividadeController::class)->prefix('atividades')->name('ativi
 // Oferecimentos
 Route::controller(OferecimentoController::class)->prefix('oferecimentos')->name('oferecimentos.')->group(function () {
     Route::get('/{atividade}/create', 'create')->name('create');
-    
-    // Route::post('/', 'store')->name('store');
-    // Route::get('/{oferecimento}', 'show')->name('show');
+    Route::post('/{atividade}', 'store')->name('store');
+    Route::get('/{atividade}/{oferecimento}', 'show')->name('show');
     // Route::get('/{oferecimento}/edit', 'edit')->name('edit');
     // Route::patch('/{oferecimento}', 'update')->name('update');
     // Route::delete('/{oferecimento}', 'destroy')->name('destroy');

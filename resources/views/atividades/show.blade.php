@@ -72,7 +72,7 @@
                                     {{ $oferecimento->nome ?? $oferecimento->descricao ?? 'Oferecimento #' . $oferecimento->id }}
                                 </td>
                                 <td class="text-end">
-                                    <a href="/oferecimentos/{{ $oferecimento->id }}" class="btn btn-sm btn-outline-primary">
+                                    <a href="/oferecimentos/{{ $atividade->id }}/{{ $oferecimento->id }}" class="btn btn-sm btn-outline-primary">
                                         Ver
                                     </a>
                                 </td>

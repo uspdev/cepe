@@ -35,11 +35,12 @@ class OferecimentoController extends Controller
         
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
-        return redirect('/oferecimentos');
+        return redirect("/atividades/{$request->atividade_id}");
     }
 
-    public function show(Oferecimento $oferecimento){
+    public function show(Atividade $atividade, Oferecimento $oferecimento){
         return view('oferecimentos.show',[
+            'atividade' => $atividade,
             'oferecimento' => $oferecimento
         ]);
     }
