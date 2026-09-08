@@ -15,6 +15,12 @@ return new class extends Migration
             $table->id();
             $table->timestamps();
 
+            $table->string('pagamento'); // pix ou boleto
+            $table->string('periodo_semestre', 2);
+            $table->integer('periodo_ano');
+            $table->boolean('atestado_medico')->default(false);
+            $table->boolean('exame_dermatologico')->default(false);
+
             $table->unsignedBigInteger('atividade_id')->nullable();
             $table->foreign('atividade_id')->references('id')->on('atividades')->nullOnDelete();
 

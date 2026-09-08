@@ -29,13 +29,34 @@ class OferecimentoController extends Controller
         );
     }
 
-    public function store(OferecimentoRequest $request){
+    public function store(OferecimentoRequest $request)
+    {
+        // 1. Cria e salva o Oferecimento
         $oferecimento = new Oferecimento;
         $oferecimento->atividade_id = $request->atividade_id;
-        
+        $oferecimento->pagamento = $request->pagamento;
+        $oferecimento->periodo_semestre = $request->periodo_semestre;
+        $oferecimento->periodo_ano = $request->periodo_ano;
+        $oferecimento->atestado_medico = $request->boolean('atestado_medico');
+        $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
-        return redirect("/atividades/{$request->atividade_id}");
+
+        // 2. Salva os períodos de inscrição por perfil que foram ativados
+        if ($request->has('periodos') && is_array($request->periodos)) {
+            foreach ($request->periodos as $perfilKey => $dados) {
+                if (!empty($dados['ativo']) && !empty($dados['inicio']) && !empty($dados['fim'])) {
+                    $oferecimento->periodos()->create([
+                        'perfil' => $perfilKey,
+                        'inicio' => $dados['inicio'],
+                        'fim'    => $dados['fim'],
+                    ]);
+                }
+            }
+        }
+
+        return redirect("/atividades/{$request->atividade_id}")
+            ->with('success', 'Oferecimento criado com sucesso!');
     }
 
     public function show(Atividade $atividade, Oferecimento $oferecimento){
