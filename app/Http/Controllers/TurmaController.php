@@ -6,10 +6,12 @@ use Illuminate\Http\Request;
 use App\Models\Turma;
 use App\Models\Oferecimento;
 use App\Http\Requests\TurmaRequest;
+use Illuminate\Support\Facades\Gate;
 
 class TurmaController extends Controller
 {
     public function index(Request $request){
+        Gate::authorize('admin');
         if($request->has('search')){
             $turmas = Turma::where('oferecimento_id','like','%'.$request->search.'%')->get();
         } else {
@@ -22,12 +24,14 @@ class TurmaController extends Controller
     }
 
     public function create(){
+        Gate::authorize('admin');
         return view('turmas.create',[
             'oferecimentos' => Oferecimento::all()
         ]);
     }
 
     public function store(TurmaRequest $request){
+        Gate::authorize('admin');
         $turma = new Turma;
         $turma->fill($request->validated());
         $turma->user_id = auth()->id();
@@ -36,12 +40,14 @@ class TurmaController extends Controller
     }
 
     public function show(Turma $turma){
+        Gate::authorize('admin');
         return view('turmas.show',[
             'turma' => $turma
         ]);
     }
 
     public function edit(Turma $turma){
+        Gate::authorize('admin');
         return view('turmas.edit',[
             'turma' => $turma,
             'oferecimentos' => Oferecimento::all()
@@ -49,6 +55,7 @@ class TurmaController extends Controller
     }
 
     public function update(TurmaRequest $request, Turma $turma){
+        Gate::authorize('admin');
         $turma->fill($request->validated());
         $turma->user_id = auth()->id();
         $turma->save();
@@ -57,6 +64,7 @@ class TurmaController extends Controller
 
     public function destroy(Turma $turma)
     {
+        Gate::authorize('admin');
         $oferecimento = $turma->oferecimento;
         $turma->delete();
         return $this->voltarParaOferecimento($turma, $oferecimento);
