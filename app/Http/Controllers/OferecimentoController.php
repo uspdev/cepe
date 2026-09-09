@@ -7,10 +7,12 @@ use App\Models\Oferecimento;
 use App\Models\Atividade;
 
 use App\Http\Requests\OferecimentoRequest;
+use Illuminate\Support\Facades\Gate;
 
 class OferecimentoController extends Controller
 {
     public function index(Request $request){
+        Gate::authorize('admin');
         if($request->has('search')){
             $oferecimentos = Oferecimento::where('atividade_id','like','%'.$request->search.'%')->get();
         } else {
@@ -23,6 +25,7 @@ class OferecimentoController extends Controller
     }
 
     public function create(Atividade $atividade){
+        Gate::authorize('admin');
         return view('oferecimentos.create',[
                 'atividade' => $atividade
             ]
@@ -31,6 +34,7 @@ class OferecimentoController extends Controller
 
     public function store(OferecimentoRequest $request)
     {
+        Gate::authorize('admin');
         // 1. Cria e salva o Oferecimento
         $oferecimento = new Oferecimento;
         $oferecimento->atividade_id = $request->atividade_id;
@@ -60,6 +64,7 @@ class OferecimentoController extends Controller
     }
 
     public function show(Atividade $atividade, Oferecimento $oferecimento){
+        Gate::authorize('admin');
         return view('oferecimentos.show',[
             'atividade' => $atividade,
             'oferecimento' => $oferecimento
@@ -67,12 +72,14 @@ class OferecimentoController extends Controller
     }
 
     public function edit(Oferecimento $oferecimento){
+        Gate::authorize('admin');
         return view('oferecimentos.edit',[
             'oferecimento' => $oferecimento
         ]);
     }
 
     public function update(OferecimentoRequest $request, Oferecimento $oferecimento){
+        Gate::authorize('admin');
         $oferecimento->atividade_id = $request->atividade_id;
         
         $oferecimento->user_id = auth()->id();
@@ -82,6 +89,7 @@ class OferecimentoController extends Controller
 
     public function destroy(Oferecimento $oferecimento)
     {
+        Gate::authorize('admin');
         $oferecimento->delete();
         return redirect('/oferecimentos');
     }

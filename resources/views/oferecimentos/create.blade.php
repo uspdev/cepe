@@ -97,22 +97,22 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label for="inicio_{{ $key }}" class="form-label small fw-semibold text-muted mb-1">Início da Inscrição</label>
-                    <input type="datetime-local" 
-                           class="form-control form-control-sm campo-data-{{ $key }}" 
-                           id="inicio_{{ $key }}" 
-                           name="periodos[{{ $key }}][inicio]" 
-                           value="{{ old("periodos.{$key}.inicio") }}"
-                           {{ !$isAtivo ? 'disabled' : '' }}>
+                          <input type="text" 
+                              class="form-control form-control-sm datepicker hasDatepicker campo-data-{{ $key }}" 
+                              id="inicio_{{ $key }}" 
+                              name="periodos[{{ $key }}][inicio]" 
+                              value="{{ old("periodos.{$key}.inicio") }}"
+                              {{ !$isAtivo ? 'disabled' : '' }}>
                 </div>
 
                 <div class="col-md-6">
                     <label for="fim_{{ $key }}" class="form-label small fw-semibold text-muted mb-1">Término da Inscrição</label>
-                    <input type="datetime-local" 
-                           class="form-control form-control-sm campo-data-{{ $key }}" 
-                           id="fim_{{ $key }}" 
-                           name="periodos[{{ $key }}][fim]" 
-                           value="{{ old("periodos.{$key}.fim") }}"
-                           {{ !$isAtivo ? 'disabled' : '' }}>
+                          <input type="text" 
+                              class="form-control form-control-sm datepicker hasDatepicker campo-data-{{ $key }}" 
+                              id="fim_{{ $key }}" 
+                              name="periodos[{{ $key }}][fim]" 
+                              value="{{ old("periodos.{$key}.fim") }}"
+                              {{ !$isAtivo ? 'disabled' : '' }}>
                 </div>
             </div>
         </div>
