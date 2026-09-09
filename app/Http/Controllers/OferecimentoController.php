@@ -45,23 +45,24 @@ class OferecimentoController extends Controller
         ]);
     }
 
-    public function edit(Oferecimento $oferecimento){
+    public function edit(Atividade $atividade, Oferecimento $oferecimento){
         return view('oferecimentos.edit',[
+            'atividade' => $atividade,
             'oferecimento' => $oferecimento
         ]);
     }
 
-    public function update(OferecimentoRequest $request, Oferecimento $oferecimento){
+    public function update(OferecimentoRequest $request, Atividade $atividade, Oferecimento $oferecimento){
         $oferecimento->atividade_id = $request->atividade_id;
-        
+
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
-        return redirect("/oferecimentos/{$oferecimento->id}");
+        return redirect("/oferecimentos/{$atividade->id}/{$oferecimento->id}");
     }
 
-    public function destroy(Oferecimento $oferecimento)
+    public function destroy(Atividade $atividade, Oferecimento $oferecimento)
     {
         $oferecimento->delete();
-        return redirect('/oferecimentos');
+        return redirect("/atividades/{$atividade->id}");
     }
 }

@@ -24,9 +24,9 @@ Route::controller(OferecimentoController::class)->prefix('oferecimentos')->name(
     Route::get('/{atividade}/create', 'create')->name('create');
     Route::post('/{atividade}', 'store')->name('store');
     Route::get('/{atividade}/{oferecimento}', 'show')->name('show');
-    // Route::get('/{oferecimento}/edit', 'edit')->name('edit');
-    // Route::patch('/{oferecimento}', 'update')->name('update');
-    // Route::delete('/{oferecimento}', 'destroy')->name('destroy');
+    Route::get('/{atividade}/{oferecimento}/edit', 'edit')->name('edit');
+    Route::patch('/{atividade}/{oferecimento}', 'update')->name('update');
+    Route::delete('/{atividade}/{oferecimento}', 'destroy')->name('destroy');
 });
 
 // Turmas

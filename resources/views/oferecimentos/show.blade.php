@@ -2,6 +2,30 @@
 
 @section('content')
 <div class="container py-4">
+
+    @include('oferecimentos.partials.periodos')
+
+    @php
+        $formasPagamento = (array) ($oferecimento->formas_pagamento ?? []);
+        if ($oferecimento->gratuito_ou_sem_pagamento) {
+            array_unshift($formasPagamento, 'Gratuito ou sem Pagamento On-Line');
+        }
+        $rotulosPagamento = ['pix' => 'Pix', 'boleto' => 'Boleto'];
+
+        $fmt = function ($base) use ($oferecimento) {
+            $partes = [];
+            $data  = $oferecimento->{"{$base}_data"};
+            $hora  = $oferecimento->{"{$base}_hora"};
+            if ($data) {
+                $partes[] = $data;
+            }
+            if ($hora !== null && $hora !== '') {
+                $partes[] = sprintf('%02d:%02d', (int) $hora, (int) ($oferecimento->{"{$base}_minuto"} ?? 0));
+            }
+            return implode(' ', $partes) ?: '-';
+        };
+    @endphp
+
     <!-- Card de Detalhes do Oferecimento -->
     <div class="card shadow-sm col-md-10 mx-auto mb-4 p-0">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
@@ -22,7 +46,35 @@
 
                 <div class="col-md-6 mb-3">
                     <label class="text-muted font-weight-bold mb-1">Oferecimento</label>
-                    <p class="h5 mb-0">#{{ $oferecimento->id }}</p>
+                    <p class="h5 mb-0">
+                        #{{ $oferecimento->id }}
+                        @if($oferecimento->periodo_semestre || $oferecimento->periodo_ano)
+                            <span class="text-muted h6">({{ $oferecimento->periodo_semestre }}/{{ $oferecimento->periodo_ano }})</span>
+                        @endif
+                    </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted font-weight-bold mb-1">Pagamento</label>
+                    <p class="mb-0">
+                        @forelse($formasPagamento as $forma)
+                            <span class="badge badge-secondary">{{ $rotulosPagamento[$forma] ?? $forma }}</span>
+                        @empty
+                            -
+                        @endforelse
+                    </p>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted font-weight-bold mb-1">Atestado Médico Obrigatório</label>
+                    <p class="mb-0">{{ $oferecimento->atestado_medico ? 'Sim' : 'Não' }}</p>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="text-muted font-weight-bold mb-1">Exame Dermatológico Obrigatório</label>
+                    <p class="mb-0">{{ $oferecimento->exame_dermatologico ? 'Sim' : 'Não' }}</p>
                 </div>
             </div>
 
@@ -45,7 +97,7 @@
         </div>
 
         <div class="card-footer bg-white text-right py-3">
-            <a href="/oferecimentos/{{ $oferecimento->id }}/edit" class="btn btn-warning text-white mr-2">
+            <a href="/oferecimentos/{{ $atividade->id }}/{{ $oferecimento->id }}/edit" class="btn btn-warning text-white mr-2">
                 Editar
             </a>
 
@@ -56,10 +108,38 @@
         </div>
     </div>
 
-    <form id="apagar-oferecimento" action="/oferecimentos/{{ $oferecimento->id }}" method="POST" class="d-none">
+    <form id="apagar-oferecimento" action="/oferecimentos/{{ $atividade->id }}/{{ $oferecimento->id }}" method="POST" class="d-none">
         @csrf
         @method('DELETE')
     </form>
+
+    <!-- Períodos -->
+    <div class="card shadow-sm col-md-10 mx-auto mb-4 p-0">
+        <div class="card-header bg-white py-3">
+            <h2 class="h5 mb-0">Períodos</h2>
+        </div>
+
+        <div class="card-body p-0">
+            <table class="table table-sm table-striped mb-0">
+                <thead>
+                    <tr>
+                        <th>Período</th>
+                        <th>Início</th>
+                        <th>Fim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($periodos as $key => $titulo)
+                        <tr>
+                            <td>{{ $titulo }}</td>
+                            <td>{{ $fmt("{$key}_inicio") }}</td>
+                            <td>{{ $fmt("{$key}_fim") }}</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <!-- Turmas do Oferecimento -->
     <div class="card shadow-sm col-md-10 mx-auto p-0">
