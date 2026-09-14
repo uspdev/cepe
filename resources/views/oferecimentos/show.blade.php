@@ -3,8 +3,6 @@
 @section('content')
 <div class="container py-4">
 
-    @include('oferecimentos.partials.periodos')
-
     @php
         $formasPagamento = (array) ($oferecimento->formas_pagamento ?? []);
         if ($oferecimento->gratuito_ou_sem_pagamento) {
@@ -129,7 +127,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($periodos as $key => $titulo)
+                    @foreach(config('cepe.periodos') as $key => $titulo)
                         <tr>
                             <td>{{ $titulo }}</td>
                             <td>{{ $fmt("{$key}_inicio") }}</td>

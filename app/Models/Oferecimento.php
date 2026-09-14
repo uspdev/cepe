@@ -19,6 +19,16 @@ class Oferecimento extends Model
         'exame_dermatologico',
     ];
 
+    protected function formasPagamento(): Attribute
+    {
+        return Attribute::get(function () {
+            $pagamento = $this->attributes['pagamento'] ?? null;
+            $dados = $pagamento ? @unserialize($pagamento) : null;
+
+            return is_array($dados) ? $dados : [];
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

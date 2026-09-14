@@ -38,7 +38,7 @@ class OferecimentoController extends Controller
         // 1. Cria e salva o Oferecimento
         $oferecimento = new Oferecimento;
         $oferecimento->atividade_id = $request->atividade_id;
-        $oferecimento->pagamento = $request->pagamento;
+        $oferecimento->pagamento = serialize($request->formas_pagamento);
         $oferecimento->periodo_semestre = $request->periodo_semestre;
         $oferecimento->periodo_ano = $request->periodo_ano;
         $oferecimento->atestado_medico = $request->boolean('atestado_medico');
@@ -82,7 +82,7 @@ class OferecimentoController extends Controller
     public function update(OferecimentoRequest $request, Oferecimento $oferecimento){
         Gate::authorize('admin');
         $oferecimento->atividade_id = $request->atividade_id;
-
+        $oferecimento->pagamento = serialize($request->formas_pagamento);
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
         return redirect("/oferecimentos/{$atividade->id}/{$oferecimento->id}");
