@@ -6,6 +6,15 @@
     $valor = fn($campo, $default = null) => old($campo, $oferecimento?->{$campo} ?? $default);
     $marcou = fn($campo) => (bool) $valor($campo);
     $formasPagamento = (array) old('formas_pagamento', $oferecimento?->formas_pagamento ?? []);
+    
+    // Lista de seções de datas do formulário/exibição de oferecimentos
+    $periodos = [
+        'usp'     => 'Período de Inscrições Comunidade USP',
+        'papfe'   => 'Período de Inscrições PAPFE',
+        'externa' => 'Período de Inscrições Comunidade Externa',
+        'segundo' => 'Segundo Período de Inscrições',
+        'curso'   => 'Período do Curso',
+    ];
 @endphp
 
 <!-- Pagamento -->
@@ -26,26 +35,6 @@
 </div>
 <hr>
 
-<!-- Período -->
-<div class="form-row">
-    <div class="form-group col-auto">
-        <label for="periodo_semestre">Período:</label>
-        <select name="periodo_semestre" id="periodo_semestre" class="form-control form-control-sm">
-            <option value="01" {{ $valor('periodo_semestre') == '01' ? 'selected' : '' }}>01</option>
-            <option value="02" {{ $valor('periodo_semestre', '02') == '02' ? 'selected' : '' }}>02</option>
-        </select>
-    </div>
-    <div class="form-group col-auto">
-        <label for="periodo_ano">Ano:</label>
-        <select name="periodo_ano" id="periodo_ano" class="form-control form-control-sm">
-            @for($ano = date('Y'); $ano <= date('Y') + 5; $ano++)
-                <option value="{{ $ano }}" {{ $valor('periodo_ano', date('Y')) == $ano ? 'selected' : '' }}>{{ $ano }}</option>
-            @endfor
-        </select>
-    </div>
-</div>
-
-<!-- Seções de Datas e Horários -->
 @foreach($periodos as $key => $titulo)
     <div class="form-group border-top pt-3">
         <h6 class="font-weight-normal text-secondary">{{ $titulo }}:</h6>
