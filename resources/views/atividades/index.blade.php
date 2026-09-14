@@ -46,6 +46,7 @@
                                     <a href="/atividades/{{ $atividade->id }}" class="text-decoration-none text-primary">
                                         {{ $atividade->nome }}
                                     </a>
+                                    <span class="badge bg-secondary ms-2">{{ config('cepe.tipos_inscricao.' . $atividade->tipo) }}</span>
                                 </td>
                                 <td class="text-muted">
                                     {{ $atividade->descricao }}

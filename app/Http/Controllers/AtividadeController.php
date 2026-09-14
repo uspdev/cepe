@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Atividade;
 use App\Http\Requests\AtividadeRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 
 class AtividadeController extends Controller
@@ -32,8 +33,9 @@ class AtividadeController extends Controller
         $atividade = new Atividade;
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
-        
-        $atividade->user_id = auth()->id();
+        $atividade->tipo = $request->tipo;
+
+        $atividade->user_id = Auth::id();
         $atividade->save();
         return redirect('/atividades');
     }
@@ -56,8 +58,9 @@ class AtividadeController extends Controller
         Gate::authorize('admin');
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
-        
-        $atividade->user_id = auth()->id();
+        $atividade->tipo = $request->tipo;
+
+        $atividade->user_id = Auth::id();
         $atividade->save();
         return redirect("/atividades/{$atividade->id}");
     }

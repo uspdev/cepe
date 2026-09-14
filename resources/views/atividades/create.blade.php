@@ -15,6 +15,15 @@
         <textarea class="form-control" id="descricao" name="descricao" rows="4" placeholder="Digite a descrição da atividade">{{ old('descricao') }}</textarea>
     </div>
 
+    <div class="mb-3">
+        <label for="tipo" class="form-label">Tipo</label>
+        <select class="form-control" id="tipo" name="tipo">
+            @foreach(config('cepe.tipos_inscricao') as $key => $value)
+                <option value="{{ $key }}">{{ $value }}</option>
+            @endforeach
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-primary">Enviar</button>
 </form>
 

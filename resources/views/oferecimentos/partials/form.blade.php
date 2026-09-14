@@ -1,4 +1,3 @@
-@include('oferecimentos.partials.periodos')
 @php
     $oferecimento = $oferecimento ?? null;
 
