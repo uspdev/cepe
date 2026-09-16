@@ -18,10 +18,10 @@ return [
      * and an array of relation names to ignore.
      */
     'ignore' => [
-        // User::class,
-        // Post::class => [
-        //     'user'
-        // ]
+        //\App\Models\User::class,
+        \App\Models\Atividade::class => ['user'],
+        \App\Models\Oferecimento::class => ['user'],
+        \App\Models\Turma::class => ['user']
     ],
 
     /*
@@ -70,8 +70,7 @@ return [
      * This option only apply when 'use_db_schema' is set to true.
     */
     'ignore_columns' => [
-         'users.*',
-        // 'posts.description',
+        //'posts.description',
     ],
 
     /*
@@ -98,7 +97,7 @@ return [
         'fontsize' => 12,
         'labelloc' => 't',
         'concentrate' => true,
-        'splines' => 'polyline',
+        'splines' => 'ortho',
         'overlap' => false,
         'nodesep' => 1,
         'rankdir' => 'LR',
@@ -129,13 +128,13 @@ return [
         ],
         'BelongsTo' => [
             'dir' => 'both',
-            'color' => '#F77F00',
+            'color' => '#2020e1',
             'arrowhead' => 'tee',
             'arrowtail' => 'crow',
         ],
         'HasMany' => [
             'dir' => 'both',
-            'color' => '#FCBF49',
+            'color' => '#f3c80d',
             'arrowhead' => 'crow',
             'arrowtail' => 'none',
         ],

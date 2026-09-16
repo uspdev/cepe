@@ -39,3 +39,12 @@ Route::controller(TurmaController::class)->prefix('turmas')->name('turmas.')->gr
     Route::patch('/{turma}', 'update')->name('update');
     Route::delete('/{turma}', 'destroy')->name('destroy');
 });
+use App\Http\Controllers\MatriculaController;
+
+Route::get('/matriculas', [MatriculaController::class, 'index']);
+Route::get('/matriculas/create', [MatriculaController::class, 'create']);
+Route::post('/matriculas', [MatriculaController::class, 'store']);
+Route::get('/matriculas/{matricula}', [MatriculaController::class, 'show']);
+Route::get('/matriculas/{matricula}/edit', [MatriculaController::class, 'edit']);
+Route::patch('/matriculas/{matricula}', [MatriculaController::class, 'update']);
+Route::delete('/matriculas/{matricula}', [MatriculaController::class, 'destroy']);

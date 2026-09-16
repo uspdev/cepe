@@ -11,8 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('atividades', function (Blueprint $table) {
-            $table->string('tipo')->nullable()->after('descricao');
+        Schema::create('matriculas', function (Blueprint $table) {
+            $table->id();
+            $table->timestamps();
+            $table->string('a');
+
+            $table->unsignedBigInteger('user_id')->nullable();
+            $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
         });
     }
 
@@ -21,8 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('atividades', function (Blueprint $table) {
-            $table->dropColumn('tipo');
-        });
+        Schema::dropIfExists('matriculas');
     }
 };

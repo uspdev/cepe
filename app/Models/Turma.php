@@ -50,4 +50,9 @@ class Turma extends Model
     {
         return $this->belongsTo(Oferecimento::class);
     }
+
+    public function matriculas()
+    {
+        return $this->hasMany(Matricula::class);
+    }
 }
