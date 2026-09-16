@@ -8,3 +8,12 @@ Dev:
     docker exec -it cepe php artisan key:generate
     docker exec -it cepe php artisan migrate:fresh
 
+
+Gerando imagem com os relacionamentos das tabelas:
+
+    docker exec -it cepe php artisan generate:erd diagrama.png
+
+Diagrama:
+
+![Diagrama do Banco de Dados](./diagrama.png)
+

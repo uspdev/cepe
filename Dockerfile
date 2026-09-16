@@ -1,5 +1,9 @@
 FROM uspdev/uspdev-php-apache:8.4
 
+# Instala o Graphviz
+RUN apt-get update && apt-get install -y \
+    graphviz
+
 RUN sed -i 's|/var/www/html|/var/www/html/public|' \
     /etc/apache2/sites-available/000-default.conf
 
