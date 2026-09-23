@@ -11,22 +11,26 @@ use Illuminate\Support\Facades\Gate;
 
 class OferecimentoController extends Controller
 {
-    public function index(Request $request){
+    public function index(Request $request)
+    {
         Gate::authorize('admin');
-        if($request->has('search')){
-            $oferecimentos = Oferecimento::where('atividade_id','like','%'.$request->search.'%')->get();
+        if ($request->has('search')) {
+            $oferecimentos = Oferecimento::where('atividade_id', 'like', '%' . $request->search . '%')->get();
         } else {
             $oferecimentos = Oferecimento::all();
         }
 
-        return view('oferecimentos.index',[
+        return view('oferecimentos.index', [
             'oferecimentos' => $oferecimentos
         ]);
     }
 
-    public function create(Atividade $atividade){
+    public function create(Atividade $atividade)
+    {
         Gate::authorize('admin');
-        return view('oferecimentos.create',[
+        return view(
+            'oferecimentos.create',
+            [
                 'atividade' => $atividade
             ]
         );
@@ -63,26 +67,33 @@ class OferecimentoController extends Controller
             ->with('success', 'Oferecimento criado com sucesso!');
     }
 
-    public function show(Atividade $atividade, Oferecimento $oferecimento){
+    public function show(Atividade $atividade, Oferecimento $oferecimento)
+    {
         Gate::authorize('admin');
-        return view('oferecimentos.show',[
+        return view('oferecimentos.show', [
             'atividade' => $atividade,
             'oferecimento' => $oferecimento
         ]);
     }
 
-    public function edit(Atividade $atividade, Oferecimento $oferecimento){
+    public function edit(Atividade $atividade, Oferecimento $oferecimento)
+    {
         Gate::authorize('admin');
-        return view('oferecimentos.edit',[
+        return view('oferecimentos.edit', [
             'atividade' => $atividade,
             'oferecimento' => $oferecimento
         ]);
     }
 
-    public function update(OferecimentoRequest $request, Oferecimento $oferecimento){
+    public function update(OferecimentoRequest $request, Atividade $atividade, Oferecimento $oferecimento)
+    {
         Gate::authorize('admin');
         $oferecimento->atividade_id = $request->atividade_id;
         $oferecimento->pagamento = serialize($request->formas_pagamento);
+        $oferecimento->periodo_semestre = $request->periodo_semestre;
+        $oferecimento->periodo_ano = $request->periodo_ano;
+        $oferecimento->atestado_medico = $request->boolean('atestado_medico');
+        $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
         return redirect("/oferecimentos/{$atividade->id}/{$oferecimento->id}");

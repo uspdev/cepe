@@ -14,8 +14,8 @@
 <div class="form-group">
     <label class="d-block mb-1">Pagamento:</label>
     <div class="form-check form-check-inline">
-        <input type="checkbox" class="form-check-input" id="gratuito_ou_sem_pagamento" name="gratuito_ou_sem_pagamento" value="1" {{ $marcou('gratuito_ou_sem_pagamento') ? 'checked' : '' }}>
-        <label class="form-check-label" for="gratuito_ou_sem_pagamento">Gratuito ou sem Pagamento On-Line</label>
+        <input type="checkbox" class="form-check-input" id="gratuito" name="formas_pagamento[]" value="gratuito" {{ $marcou('gratuito') ? 'checked' : '' }}>
+        <label class="form-check-label" for="gratuito">Gratuito ou sem Pagamento On-Line</label>
     </div>
     <div class="form-check form-check-inline">
         <input type="checkbox" class="form-check-input" id="pagamento_pix" name="formas_pagamento[]" value="pix" {{ in_array('pix', $formasPagamento) ? 'checked' : '' }}>
