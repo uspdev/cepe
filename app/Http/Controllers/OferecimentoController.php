@@ -53,11 +53,11 @@ class OferecimentoController extends Controller
         // 2. Salva os períodos de inscrição por perfil que foram ativados
         if ($request->has('periodos') && is_array($request->periodos)) {
             foreach ($request->periodos as $perfilKey => $dados) {
-                if (!empty($dados['ativo']) && !empty($dados['inicio']) && !empty($dados['fim'])) {
+                if (!empty($dados['ativo']) && !empty($dados['inicio_data']) && !empty($dados['fim_data'])) {
                     $oferecimento->periodos()->create([
                         'perfil' => $perfilKey,
-                        'inicio' => $dados['inicio'],
-                        'fim'    => $dados['fim'],
+                        'inicio' => \Carbon\Carbon::createFromFormat('d/m/Y H:i', "{$dados['inicio_data']} " . ($dados['inicio_horario'] ?? '00:00')),
+                        'fim'    => \Carbon\Carbon::createFromFormat('d/m/Y H:i', "{$dados['fim_data']} " . ($dados['fim_horario'] ?? '00:00')),
                     ]);
                 }
             }
@@ -88,6 +88,7 @@ class OferecimentoController extends Controller
     public function update(OferecimentoRequest $request, Atividade $atividade, Oferecimento $oferecimento)
     {
         Gate::authorize('admin');
+
         $oferecimento->atividade_id = $request->atividade_id;
         $oferecimento->pagamento = serialize($request->formas_pagamento);
         $oferecimento->periodo_semestre = $request->periodo_semestre;
@@ -96,6 +97,20 @@ class OferecimentoController extends Controller
         $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
+        
+        if ($request->has('periodos') && is_array($request->periodos)) {
+            foreach ($request->periodos as $perfilKey => $dados) {
+                if (!empty($dados['ativo']) && !empty($dados['inicio_data']) && !empty($dados['fim_data'])) {
+                    $oferecimento->periodos()->updateOrCreate([
+                        'perfil' => $perfilKey,
+                    ], [
+                        'inicio' => \Carbon\Carbon::createFromFormat('d/m/Y H:i', "{$dados['inicio_data']} " . ($dados['inicio_horario'] ?? '00:00')),
+                        'fim'    => \Carbon\Carbon::createFromFormat('d/m/Y H:i', "{$dados['fim_data']} " . ($dados['fim_horario'] ?? '00:00')),
+                    ]);
+                }
+            }
+        }
+
         return redirect("/oferecimentos/{$atividade->id}/{$oferecimento->id}");
     }
 

@@ -23,10 +23,11 @@ class OferecimentoRequest extends FormRequest
             'exame_dermatologico' => 'nullable',
         ];
 
-        foreach (['usp', 'papfe', 'externa', 'segundo', 'curso'] as $perfil) {
-            $rules["{$perfil}_inicio_data"] = 'nullable|date_format:d/m/Y';
-            $rules["{$perfil}_fim_data"] = 'nullable|date_format:d/m/Y';
-        }
+        $rules['periodos.*.ativo'] = 'nullable';
+        $rules['periodos.*.inicio_data'] = 'nullable|date_format:d/m/Y';
+        $rules['periodos.*.fim_data'] = 'nullable|date_format:d/m/Y';
+        $rules['periodos.*.inicio_horario'] = 'nullable|date_format:H:i';
+        $rules['periodos.*.fim_horario'] = 'nullable|date_format:H:i';
 
         return $rules;
     }

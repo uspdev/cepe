@@ -10,18 +10,6 @@
         }
         $rotulosPagamento = ['pix' => 'Pix', 'boleto' => 'Boleto'];
 
-        $fmt = function ($base) use ($oferecimento) {
-            $partes = [];
-            $data  = $oferecimento->{"{$base}_data"};
-            $hora  = $oferecimento->{"{$base}_hora"};
-            if ($data) {
-                $partes[] = $data;
-            }
-            if ($hora !== null && $hora !== '') {
-                $partes[] = sprintf('%02d:%02d', (int) $hora, (int) ($oferecimento->{"{$base}_minuto"} ?? 0));
-            }
-            return implode(' ', $partes) ?: '-';
-        };
     @endphp
 
     <!-- Card de Detalhes do Oferecimento -->
@@ -127,11 +115,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(config('cepe.periodos') as $key => $titulo)
-                        <tr>
-                            <td>{{ $titulo }}</td>
-                            <td>{{ $fmt("{$key}_inicio") }}</td>
-                            <td>{{ $fmt("{$key}_fim") }}</td>
+                    @foreach($oferecimento->periodos as $periodo)
+                         <tr>
+                            <td>{{ config("cepe.periodos")[$periodo->perfil] }}</td>
+                            <td>{{ $periodo->inicio->format('d/m/Y H:i') }}</td>
+                            <td>{{ $periodo->fim->format('d/m/Y H:i') }}</td>
                         </tr>
                     @endforeach
                 </tbody>
