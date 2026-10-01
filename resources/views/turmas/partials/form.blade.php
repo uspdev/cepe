@@ -24,6 +24,13 @@
         'segunda' => 'Seg', 'terca' => 'Ter', 'quarta' => 'Qua',
         'quinta' => 'Qui', 'sexta' => 'Sex', 'sabado' => 'Sáb', 'domingo' => 'Dom',
     ];
+
+    $taxasSalvas = $turma?->taxas->keyBy(fn($taxa) => "{$taxa->perfil}-{$taxa->periodo_inscricao}") ?? collect();
+    $valorTaxa = function ($perfil, $periodo) use ($ativo, $taxasSalvas) {
+        $key = "{$perfil}-{$periodo}";
+        $atual = $taxasSalvas->get($key)?->valor;
+        return $ativo ? old("taxas.{$perfil}.{$periodo}.valor", $atual) : $atual;
+    };
 @endphp
 
 <input type="hidden" name="form_key" value="{{ $formKey }}">
@@ -131,53 +138,20 @@
     <textarea class="form-control{{ $invalido('observacoes') }}" id="{{ $formKey }}-observacoes" name="observacoes" rows="3">{{ $valor('observacoes') }}</textarea>
 </div>
 
-<h6 class="text-secondary font-weight-bold mt-4">Taxas do Primeiro Período de Inscrição</h6>
-<div class="form-row">
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_usp">Comunidade USP</label>
-        <input type="number" class="form-control{{ $invalido('taxa_usp') }}" id="{{ $formKey }}-taxa_usp" name="taxa_usp" min="0" step="0.01" value="{{ $valor('taxa_usp') }}">
+@foreach([1 => 'Primeiro', 2 => 'Segundo'] as $periodo => $tituloPeriodo)
+    <h6 class="text-secondary font-weight-bold mt-{{ $periodo === 1 ? '4' : '3' }}">Taxas do {{ $tituloPeriodo }} Período de Inscrição</h6>
+    <div class="form-row">
+        @foreach(config('cepe.perfil') as $perfil => $label)
+            @php $taxaIndex = "{$perfil}_{$periodo}"; @endphp
+            <div class="form-group col-md">
+                <input type="hidden" name="taxas[{{ $taxaIndex }}][perfil]" value="{{ $perfil }}">
+                <input type="hidden" name="taxas[{{ $taxaIndex }}][periodo_inscricao]" value="{{ $periodo }}">
+                <label for="{{ $formKey }}-taxa_{{ $perfil }}_{{ $periodo }}">{{ $label }}</label>
+                <input type="number" class="form-control{{ $invalido('taxas.' . $taxaIndex . '.valor') }}" id="{{ $formKey }}-taxa_{{ $perfil }}_{{ $periodo }}" name="taxas[{{ $taxaIndex }}][valor]" min="0" step="0.01" value="{{ $valorTaxa($perfil, $periodo) }}">
+            </div>
+        @endforeach
     </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_dependentes">Dependentes</label>
-        <input type="number" class="form-control{{ $invalido('taxa_dependentes') }}" id="{{ $formKey }}-taxa_dependentes" name="taxa_dependentes" min="0" step="0.01" value="{{ $valor('taxa_dependentes') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_externa">Comunidade Externa</label>
-        <input type="number" class="form-control{{ $invalido('taxa_externa') }}" id="{{ $formKey }}-taxa_externa" name="taxa_externa" min="0" step="0.01" value="{{ $valor('taxa_externa') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_terceira_idade">Terceira Idade</label>
-        <input type="number" class="form-control{{ $invalido('taxa_terceira_idade') }}" id="{{ $formKey }}-taxa_terceira_idade" name="taxa_terceira_idade" min="0" step="0.01" value="{{ $valor('taxa_terceira_idade') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_cepe">Comunidade CEPEUSP</label>
-        <input type="number" class="form-control{{ $invalido('taxa_cepe') }}" id="{{ $formKey }}-taxa_cepe" name="taxa_cepe" min="0" step="0.01" value="{{ $valor('taxa_cepe') }}">
-    </div>
-</div>
-
-<h6 class="text-secondary font-weight-bold mt-3">Taxas do Segundo Período de Inscrição</h6>
-<div class="form-row">
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_usp_2">Comunidade USP</label>
-        <input type="number" class="form-control{{ $invalido('taxa_usp_2') }}" id="{{ $formKey }}-taxa_usp_2" name="taxa_usp_2" min="0" step="0.01" value="{{ $valor('taxa_usp_2') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_dependentes_2">Dependentes</label>
-        <input type="number" class="form-control{{ $invalido('taxa_dependentes_2') }}" id="{{ $formKey }}-taxa_dependentes_2" name="taxa_dependentes_2" min="0" step="0.01" value="{{ $valor('taxa_dependentes_2') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_externa_2">Comunidade Externa</label>
-        <input type="number" class="form-control{{ $invalido('taxa_externa_2') }}" id="{{ $formKey }}-taxa_externa_2" name="taxa_externa_2" min="0" step="0.01" value="{{ $valor('taxa_externa_2') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_terceira_idade_2">Terceira Idade</label>
-        <input type="number" class="form-control{{ $invalido('taxa_terceira_idade_2') }}" id="{{ $formKey }}-taxa_terceira_idade_2" name="taxa_terceira_idade_2" min="0" step="0.01" value="{{ $valor('taxa_terceira_idade_2') }}">
-    </div>
-    <div class="form-group col-md">
-        <label for="{{ $formKey }}-taxa_cepe_2">Comunidade CEPEUSP</label>
-        <input type="number" class="form-control{{ $invalido('taxa_cepe_2') }}" id="{{ $formKey }}-taxa_cepe_2" name="taxa_cepe_2" min="0" step="0.01" value="{{ $valor('taxa_cepe_2') }}">
-    </div>
-</div>
+@endforeach
 
 <div class="form-group">
     <label for="{{ $formKey }}-info_contato">Informações para Contato</label>

@@ -26,20 +26,6 @@ return new class extends Migration
             $table->integer('vagas_externa')->nullable();
             $table->text('observacoes')->nullable();
 
-            // Taxas do primeiro período de inscrição
-            $table->decimal('taxa_usp', 8, 2)->nullable();
-            $table->decimal('taxa_dependentes', 8, 2)->nullable();
-            $table->decimal('taxa_externa', 8, 2)->nullable();
-            $table->decimal('taxa_terceira_idade', 8, 2)->nullable();
-            $table->decimal('taxa_cepe', 8, 2)->nullable();
-
-            // Taxas do segundo período de inscrição
-            $table->decimal('taxa_usp_2', 8, 2)->nullable();
-            $table->decimal('taxa_dependentes_2', 8, 2)->nullable();
-            $table->decimal('taxa_externa_2', 8, 2)->nullable();
-            $table->decimal('taxa_terceira_idade_2', 8, 2)->nullable();
-            $table->decimal('taxa_cepe_2', 8, 2)->nullable();
-
             $table->text('info_contato')->nullable();
             $table->text('declaracao')->nullable();
         });

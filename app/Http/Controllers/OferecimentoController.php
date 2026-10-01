@@ -70,6 +70,7 @@ class OferecimentoController extends Controller
     public function show(Atividade $atividade, Oferecimento $oferecimento)
     {
         Gate::authorize('admin');
+        $oferecimento->load('turmas.taxas');
         return view('oferecimentos.show', [
             'atividade' => $atividade,
             'oferecimento' => $oferecimento

@@ -33,9 +33,12 @@ class TurmaController extends Controller
     public function store(TurmaRequest $request){
         Gate::authorize('admin');
         $turma = new Turma;
-        $turma->fill($request->validated());
+        $dados = $request->validated();
+        unset($dados['taxas']);
+        $turma->fill($dados);
         $turma->user_id = auth()->id();
         $turma->save();
+        $this->syncTaxas($turma, $request->validated('taxas', []));
         return $this->voltarParaOferecimento($turma);
     }
 
@@ -56,9 +59,12 @@ class TurmaController extends Controller
 
     public function update(TurmaRequest $request, Turma $turma){
         Gate::authorize('admin');
-        $turma->fill($request->validated());
+        $dados = $request->validated();
+        unset($dados['taxas']);
+        $turma->fill($dados);
         $turma->user_id = auth()->id();
         $turma->save();
+        $this->syncTaxas($turma, $request->validated('taxas', []));
         return $this->voltarParaOferecimento($turma);
     }
 
@@ -82,5 +88,24 @@ class TurmaController extends Controller
         }
 
         return redirect('/turmas');
+    }
+
+    private function syncTaxas(Turma $turma, array $taxas): void
+    {
+        $taxas_id = [];
+        foreach ($taxas as $taxa) {
+            if (empty($taxa['valor']) || !is_numeric($taxa['valor'])) {
+                continue;
+            }
+            $model = $turma->taxas()->updateOrCreate([
+                'perfil' => $taxa['perfil'],
+                'periodo_inscricao' => $taxa['periodo_inscricao'],
+            ], [
+                'valor' => $taxa['valor'],
+            ]);
+            $taxas_id[] = $model->id;
+        }
+
+        $turma->taxas()->whereNotIn('id', $taxas_id)->delete();
     }
 }

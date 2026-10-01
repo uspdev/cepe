@@ -22,16 +22,6 @@ class Turma extends Model
         'vagas_papfe',
         'vagas_externa',
         'observacoes',
-        'taxa_usp',
-        'taxa_dependentes',
-        'taxa_externa',
-        'taxa_terceira_idade',
-        'taxa_cepe',
-        'taxa_usp_2',
-        'taxa_dependentes_2',
-        'taxa_externa_2',
-        'taxa_terceira_idade_2',
-        'taxa_cepe_2',
         'info_contato',
         'declaracao',
     ];
@@ -54,5 +44,10 @@ class Turma extends Model
     public function matriculas()
     {
         return $this->hasMany(Matricula::class);
+    }
+
+    public function taxas()
+    {
+        return $this->hasMany(TaxaTurma::class);
     }
 }

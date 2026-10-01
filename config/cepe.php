@@ -2,9 +2,13 @@
 
 return [
     'perfil' => [
-        'papfe'  => 'Programa de Apoio à Permanência e Formação Estudantil',
-        'alumni' => 'Egressos de graduação e pós-graduação',
-        'usp'    => 'Comunidade USP',
+        'tax_papfe'  => 'Programa de Apoio à Permanência e Formação Estudantil',
+        'tax_alumni' => 'Egressos de graduação e pós-graduação',
+        'tax_in'    => 'Comunidade USP',
+        'tax_ex'    => 'Comunidade Externa',
+        'tax_ter'   =>  'Terceira Idade',
+        'tax_cepe'  =>  'Comunidade CEPEUSP',
+        'tax_child' => 'Dependente'
     ],
     'tipos_inscricao' => [
         'cursos' => 'Curso',
