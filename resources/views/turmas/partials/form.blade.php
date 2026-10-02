@@ -31,6 +31,20 @@
         $atual = $taxasSalvas->get($key)?->valor;
         return $ativo ? old("taxas.{$perfil}.{$periodo}.valor", $atual) : $atual;
     };
+
+    $configVagas = $turma?->exists
+        ? $turma->configuracaoVagas()
+        : \App\Models\VagaTurma::configuracao(isset($oferecimento) ? $oferecimento->atividade?->tipo : null);
+    $perfisVagas = collect($configVagas['perfis'])->mapWithKeys(fn($perfil) => [$perfil => config('cepe.perfil.' . $perfil)]);
+    if ($configVagas['reservadas']) {
+        $perfisVagas[\App\Models\VagaTurma::RESERVADA] = 'Reservadas';
+    }
+
+    $vagasSalvas = $turma?->vagas->keyBy(fn($vaga) => "{$vaga->perfil}-{$vaga->tamanho}") ?? collect();
+    $valorVaga = function ($perfil, $tamanho) use ($ativo, $vagasSalvas) {
+        $atual = $vagasSalvas->get("{$perfil}-{$tamanho}")?->quantidade;
+        return $ativo ? old('vagas.' . $perfil . ($tamanho === '' ? '' : ".{$tamanho}"), $atual) : $atual;
+    };
 @endphp
 
 <input type="hidden" name="form_key" value="{{ $formKey }}">
@@ -118,20 +132,55 @@
     </div>
 </div>
 
-<div class="form-row">
-    <div class="form-group col-md-4">
-        <label for="{{ $formKey }}-vagas_usp">Vagas Comunidade USP</label>
-        <input type="number" class="form-control{{ $invalido('vagas_usp') }}" id="{{ $formKey }}-vagas_usp" name="vagas_usp" min="0" step="1" value="{{ $valor('vagas_usp') }}">
+@if($configVagas['ano_nascimento'])
+    <div class="form-row">
+        <div class="form-group col-md-3">
+            <label for="{{ $formKey }}-ano_nascimento_minimo">Nascidos a partir de (ano)</label>
+            <input type="number" class="form-control{{ $invalido('ano_nascimento_minimo') }}" id="{{ $formKey }}-ano_nascimento_minimo" name="ano_nascimento_minimo" min="1900" max="2100" step="1" value="{{ $valor('ano_nascimento_minimo') }}">
+        </div>
+        <div class="form-group col-md-3">
+            <label for="{{ $formKey }}-ano_nascimento_maximo">Nascidos até (ano)</label>
+            <input type="number" class="form-control{{ $invalido('ano_nascimento_maximo') }}" id="{{ $formKey }}-ano_nascimento_maximo" name="ano_nascimento_maximo" min="1900" max="2100" step="1" value="{{ $valor('ano_nascimento_maximo') }}">
+        </div>
     </div>
-    <div class="form-group col-md-4">
-        <label for="{{ $formKey }}-vagas_papfe">Vagas PAPFE</label>
-        <input type="number" class="form-control{{ $invalido('vagas_papfe') }}" id="{{ $formKey }}-vagas_papfe" name="vagas_papfe" min="0" step="1" value="{{ $valor('vagas_papfe') }}">
+@endif
+
+<h6 class="text-secondary font-weight-bold mt-4">Vagas{{ $configVagas['tamanhos'] ? ' por Tamanho de Camiseta' : '' }}</h6>
+@if($configVagas['tamanhos'])
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th></th>
+                    @foreach($configVagas['tamanhos'] as $tamanho => $rotuloTamanho)
+                        <th class="text-center">{{ $rotuloTamanho }}</th>
+                    @endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($perfisVagas as $perfil => $label)
+                    <tr>
+                        <td class="align-middle">{{ $label }}</td>
+                        @foreach($configVagas['tamanhos'] as $tamanho => $rotuloTamanho)
+                            <td>
+                                <input type="number" class="form-control form-control-sm{{ $invalido("vagas.{$perfil}.{$tamanho}") }}" aria-label="{{ $label }} - {{ $rotuloTamanho }}" name="vagas[{{ $perfil }}][{{ $tamanho }}]" min="0" step="1" value="{{ $valorVaga($perfil, $tamanho) }}">
+                            </td>
+                        @endforeach
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
-    <div class="form-group col-md-4">
-        <label for="{{ $formKey }}-vagas_externa">Vagas Comunidade Externa</label>
-        <input type="number" class="form-control{{ $invalido('vagas_externa') }}" id="{{ $formKey }}-vagas_externa" name="vagas_externa" min="0" step="1" value="{{ $valor('vagas_externa') }}">
+@else
+    <div class="form-row">
+        @foreach($perfisVagas as $perfil => $label)
+            <div class="form-group col-md">
+                <label for="{{ $formKey }}-vagas_{{ $perfil }}">{{ $label }}</label>
+                <input type="number" class="form-control{{ $invalido('vagas.' . $perfil) }}" id="{{ $formKey }}-vagas_{{ $perfil }}" name="vagas[{{ $perfil }}]" min="0" step="1" value="{{ $valorVaga($perfil, '') }}">
+            </div>
+        @endforeach
     </div>
-</div>
+@endif
 
 <div class="form-group">
     <label for="{{ $formKey }}-observacoes">Observações</label>

@@ -18,9 +18,8 @@ class Turma extends Model
         'idade_maxima',
         'nivel',
         'local',
-        'vagas_usp',
-        'vagas_papfe',
-        'vagas_externa',
+        'ano_nascimento_minimo',
+        'ano_nascimento_maximo',
         'observacoes',
         'info_contato',
         'declaracao',
@@ -44,6 +43,16 @@ class Turma extends Model
     public function matriculas()
     {
         return $this->hasMany(Matricula::class);
+    }
+
+    public function vagas()
+    {
+        return $this->hasMany(VagaTurma::class);
+    }
+
+    public function configuracaoVagas(): array
+    {
+        return VagaTurma::configuracao($this->oferecimento?->atividade?->tipo);
     }
 
     public function taxas()

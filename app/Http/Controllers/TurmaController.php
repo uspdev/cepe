@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Turma;
 use App\Models\Oferecimento;
+use App\Models\VagaTurma;
 use App\Http\Requests\TurmaRequest;
 use Illuminate\Support\Facades\Gate;
 
@@ -34,11 +35,12 @@ class TurmaController extends Controller
         Gate::authorize('admin');
         $turma = new Turma;
         $dados = $request->validated();
-        unset($dados['taxas']);
+        unset($dados['taxas'], $dados['vagas']);
         $turma->fill($dados);
         $turma->user_id = auth()->id();
         $turma->save();
         $this->syncTaxas($turma, $request->validated('taxas', []));
+        $this->syncVagas($turma, $request->validated('vagas', []));
         return $this->voltarParaOferecimento($turma);
     }
 
@@ -60,11 +62,12 @@ class TurmaController extends Controller
     public function update(TurmaRequest $request, Turma $turma){
         Gate::authorize('admin');
         $dados = $request->validated();
-        unset($dados['taxas']);
+        unset($dados['taxas'], $dados['vagas']);
         $turma->fill($dados);
         $turma->user_id = auth()->id();
         $turma->save();
         $this->syncTaxas($turma, $request->validated('taxas', []));
+        $this->syncVagas($turma, $request->validated('vagas', []));
         return $this->voltarParaOferecimento($turma);
     }
 
@@ -88,6 +91,35 @@ class TurmaController extends Controller
         }
 
         return redirect('/turmas');
+    }
+
+    private function syncVagas(Turma $turma, array $vagas): void
+    {
+        $config = $turma->load('oferecimento.atividade')->configuracaoVagas();
+        $perfis = array_merge($config['perfis'], $config['reservadas'] ? [VagaTurma::RESERVADA] : []);
+        $tamanhos = array_map('strval', array_keys($config['tamanhos']));
+
+        $vagas_id = [];
+        foreach ($vagas as $perfil => $valor) {
+            foreach (is_array($valor) ? $valor : ['' => $valor] as $tamanho => $quantidade) {
+                $tamanho = (string) $tamanho;
+                if ($quantidade === null || $quantidade === '' || !in_array($perfil, $perfis)) {
+                    continue;
+                }
+                if ($tamanhos ? !in_array($tamanho, $tamanhos, true) : $tamanho !== '') {
+                    continue;
+                }
+                $model = $turma->vagas()->updateOrCreate([
+                    'perfil' => $perfil,
+                    'tamanho' => $tamanho,
+                ], [
+                    'quantidade' => $quantidade,
+                ]);
+                $vagas_id[] = $model->id;
+            }
+        }
+
+        $turma->vagas()->whereNotIn('id', $vagas_id)->delete();
     }
 
     private function syncTaxas(Turma $turma, array $taxas): void

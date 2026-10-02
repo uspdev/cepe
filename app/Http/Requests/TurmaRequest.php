@@ -26,9 +26,16 @@ class TurmaRequest extends FormRequest
             'idade_maxima' => 'nullable|integer|min:1|gte:idade_minima',
             'nivel' => 'nullable|string|max:255',
             'local' => 'nullable|string|max:255',
-            'vagas_usp' => 'nullable|integer|min:0',
-            'vagas_papfe' => 'nullable|integer|min:0',
-            'vagas_externa' => 'nullable|integer|min:0',
+            'ano_nascimento_minimo' => 'nullable|integer|digits:4',
+            'ano_nascimento_maximo' => 'nullable|integer|digits:4|gte:ano_nascimento_minimo',
+            'vagas' => 'nullable|array',
+            'vagas.*' => ['nullable', function ($attribute, $value, $fail) {
+                foreach (is_array($value) ? $value : [$value] as $quantidade) {
+                    if ($quantidade !== null && (!is_numeric($quantidade) || $quantidade < 0 || floor($quantidade) != $quantidade)) {
+                        return $fail('As vagas devem ser números inteiros maiores ou iguais a zero.');
+                    }
+                }
+            }],
             'observacoes' => 'nullable|string',
             'taxas' => 'nullable|array',
             'taxas.*.perfil' => 'required_with:taxas.*.valor|in:' . implode(',', array_keys(config('cepe.perfil'))),
