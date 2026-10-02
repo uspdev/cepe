@@ -3,6 +3,7 @@ services:
     build: .
     image: cepe:latest
     container_name: cepe
+    restart: always
     ports:
       - "8000:80"
     depends_on:

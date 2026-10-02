@@ -11,7 +11,10 @@ return [
         'tax_child' => 'Dependente'
     ],
     'tipos_inscricao' => [
-        'cursos' => 'Curso',
+        'mensal' => 'Curso Mensal',
+        'bimestral' => 'Curso Bimestral',
+        'trimestral' => 'Curso Trimestral',
+        'semestral' => 'Curso Semestral',
         'eventos' => 'Evento',
         'voltausp' => 'Volta USP',
         'voltinhausp' => 'Voltinha USP',
