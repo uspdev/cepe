@@ -23,6 +23,7 @@ return [
         'usp'     => 'Período de Inscrições Comunidade USP',
         'papfe'   => 'Período de Inscrições PAPFE',
         'cepeusp' => 'Período de Inscrições CEPE USP',
+        'alumni'  => 'Período de Inscrições Alumni',
         'externa' => 'Período de Inscrições Comunidade Externa',
         'segundo' => 'Segundo Período de Inscrições',
         'curso'   => 'Período do Curso',
