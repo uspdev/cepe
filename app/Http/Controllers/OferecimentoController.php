@@ -101,7 +101,11 @@ class OferecimentoController extends Controller
         
         if ($request->has('periodos') && is_array($request->periodos)) {
             foreach ($request->periodos as $perfilKey => $dados) {
-                if (!empty($dados['ativo']) && !empty($dados['inicio_data']) && !empty($dados['fim_data'])) {
+                if(empty($dados['ativo'])) {
+                    $oferecimento->periodos()->where('perfil', $perfilKey)->delete();
+                    continue;
+                }
+                if (!empty($dados['inicio_data']) && !empty($dados['fim_data'])) {
                     $oferecimento->periodos()->updateOrCreate([
                         'perfil' => $perfilKey,
                     ], [
