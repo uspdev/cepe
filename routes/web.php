@@ -1,10 +1,10 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\IndexController;
 use App\Http\Controllers\AtividadeController;
+use App\Http\Controllers\IndexController;
 use App\Http\Controllers\OferecimentoController;
 use App\Http\Controllers\TurmaController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [IndexController::class, 'index'])->name('home');
 
@@ -48,3 +48,19 @@ Route::get('/matriculas/{matricula}', [MatriculaController::class, 'show']);
 Route::get('/matriculas/{matricula}/edit', [MatriculaController::class, 'edit']);
 Route::patch('/matriculas/{matricula}', [MatriculaController::class, 'update']);
 Route::delete('/matriculas/{matricula}', [MatriculaController::class, 'destroy']);
+
+use App\Http\Controllers\Atestados\AtestadoController;
+use App\Http\Controllers\Atestados\MeusAtestadosController;
+
+Route::middleware('auth')->group(function () {
+    Route::get('/meus-atestados', [MeusAtestadosController::class, 'index']);
+    Route::get('/meus-atestados/create', [MeusAtestadosController::class, 'create']);
+    Route::post('/meus-atestados', [MeusAtestadosController::class, 'store']);
+
+    Route::get('/atestados', [AtestadoController::class, 'index']);
+    Route::get('/atestados/exportar', [AtestadoController::class, 'exportar']);
+    Route::get('/atestados/{atestado}', [AtestadoController::class, 'show']);
+    Route::get('/atestados/{atestado}/arquivo', [AtestadoController::class, 'arquivo']);
+    Route::patch('/atestados/{atestado}/analise', [AtestadoController::class, 'analise']);
+    Route::delete('/atestados/{atestado}', [AtestadoController::class, 'destroy']);
+});
