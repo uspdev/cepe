@@ -94,9 +94,17 @@ class OferecimentoSeeder extends Seeder
             $dados['pagamento'] = serialize($dados['pagamento']);
             unset($dados['periodos']);
 
-            $oferecimento = Oferecimento::unguarded(fn() => Oferecimento::updateOrCreate(['id' => $dados['id']], $dados));
+            $oferecimento = Oferecimento::unguarded(fn () => Oferecimento::updateOrCreate(['id' => $dados['id']], $dados));
 
-            foreach ($periodos as $perfil => [$inicio, $fim]) {
+            foreach ($periodos as $perfil => [$a, $b]) {
+                [$inicio, $fim] = $perfil === 'curso' ? [$a, $b] : [$b, $a];
+
+                if ($inicio >= $fim) {
+                    PeriodoOferecimento::where(['oferecimento_id' => $oferecimento->id, 'perfil' => $perfil])->delete();
+
+                    continue;
+                }
+
                 PeriodoOferecimento::updateOrCreate(
                     ['oferecimento_id' => $oferecimento->id, 'perfil' => $perfil],
                     ['inicio' => $inicio, 'fim' => $fim]
