@@ -46,6 +46,13 @@ $right_menu = [
         'key' => 'senhaunica-socialite',
     ],
     [
+        'text' => '<i class="fas fa-user"></i> Meu perfil',
+        'title' => 'Meu perfil',
+        'url' => config('app.url').'/perfil',
+        'align' => 'right',
+        'can' => 'user',
+    ],
+    [
         'key' => 'laravel-tools',
     ],
     [

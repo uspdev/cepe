@@ -51,8 +51,14 @@ Route::delete('/matriculas/{matricula}', [MatriculaController::class, 'destroy']
 
 use App\Http\Controllers\Atestados\AtestadoController;
 use App\Http\Controllers\Atestados\MeusAtestadosController;
+use App\Http\Controllers\Perfil\PerfilController;
 
 Route::middleware('auth')->group(function () {
+    Route::get('/perfil', [PerfilController::class, 'edit']);
+    Route::patch('/perfil', [PerfilController::class, 'update']);
+    Route::get('/usuarios/{user}/perfil', [PerfilController::class, 'edit']);
+    Route::patch('/usuarios/{user}/perfil', [PerfilController::class, 'update']);
+
     Route::get('/meus-atestados', [MeusAtestadosController::class, 'index']);
     Route::get('/meus-atestados/create', [MeusAtestadosController::class, 'create']);
     Route::post('/meus-atestados', [MeusAtestadosController::class, 'store']);

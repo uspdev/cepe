@@ -19,7 +19,14 @@ class MeusAtestadosController extends Controller
 
     public function create()
     {
-        return view('meus-atestados.create');
+        if (request('tipo') === 'parq' && ! array_key_exists('parq', auth()->user()->tiposAtestado())) {
+            $faixa = config('cepe.atestados.parq');
+
+            return redirect('/meus-atestados/create?tipo=atestado_medico')
+                ->with('alert-warning', "O PAR-Q é destinado a pessoas de {$faixa['idade_min']} a {$faixa['idade_max']} anos. Envie um atestado médico.");
+        }
+
+        return view('meus-atestados.create', ['tipos' => auth()->user()->tiposAtestado()]);
     }
 
     public function store(AtestadoRequest $request)

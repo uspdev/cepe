@@ -3,8 +3,8 @@
 @section('content')
 @php
     $tipo = old('tipo', request('tipo', 'atestado_medico'));
-    $tipos = config('cepe.atestados.tipos');
-    abort_unless(isset($tipos[$tipo]), 404);
+    abort_unless(isset(config('cepe.atestados.tipos')[$tipo]), 404);
+    $tipo = isset($tipos[$tipo]) ? $tipo : 'atestado_medico';
     $perguntas = config('cepe.atestados.parq.perguntas');
 @endphp
 <div class="container py-4">
@@ -23,6 +23,10 @@
                         <li class="nav-item"><a class="nav-link {{ $tipo === $key ? 'active' : '' }}" href="/meus-atestados/create?tipo={{ $key }}">{{ $nome }}</a></li>
                     @endforeach
                 </ul>
+
+                @if($tipo === 'parq' && ! auth()->user()->perfil?->data_nascimento)
+                    <div class="alert alert-warning">Para preencher o PAR-Q é necessário informar sua data de nascimento. <a href="/perfil" class="alert-link">Atualizar perfil</a></div>
+                @endif
 
                 <input type="hidden" name="tipo" value="{{ $tipo }}">
                 @if($tipo !== 'parq')

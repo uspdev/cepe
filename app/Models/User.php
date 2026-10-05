@@ -22,6 +22,27 @@ class User extends Authenticatable
     use HasRoles;
     use HasSenhaunica;
 
+    public function perfil()
+    {
+        return $this->hasOne(Perfil::class);
+    }
+
+    public function perfilOuNovo(): Perfil
+    {
+        return $this->perfil ?? $this->perfil()->make();
+    }
+
+    /** Tipos de documento que o usuário pode enviar (PAR-Q só dentro da faixa etária conhecida). */
+    public function tiposAtestado(): array
+    {
+        $tipos = config('cepe.atestados.tipos');
+        if ($this->perfilOuNovo()->parqPermitido() === false) {
+            unset($tipos['parq']);
+        }
+
+        return $tipos;
+    }
+
     public function atestados()
     {
         return $this->hasMany(Atestado::class);

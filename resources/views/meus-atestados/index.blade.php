@@ -5,7 +5,7 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Meus Atestados</h1>
         <div>
-            @foreach(config('cepe.atestados.tipos') as $key => $nome)
+            @foreach(auth()->user()->tiposAtestado() as $key => $nome)
                 <a href="/meus-atestados/create?tipo={{ $key }}" class="btn btn-success btn-sm mb-1">+ Enviar {{ $nome }}</a>
             @endforeach
         </div>

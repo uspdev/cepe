@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Atestado;
+use App\Models\Perfil;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -19,6 +20,13 @@ class AtestadoTest extends TestCase
         Gate::define('admin', fn ($u) => $u->email === 'admin@teste.com');
 
         return User::factory()->create(['email' => 'admin@teste.com']);
+    }
+
+    private function comNascimento(User $user, int $idade): User
+    {
+        Perfil::create(['user_id' => $user->id, 'data_nascimento' => now()->subYears($idade)->subDay()]);
+
+        return $user;
     }
 
     private function enviar(User $user, array $extra = [])
@@ -50,7 +58,7 @@ class AtestadoTest extends TestCase
 
     public function test_parq_com_sim_exige_termo(): void
     {
-        $user = User::factory()->create();
+        $user = $this->comNascimento(User::factory()->create(), 30);
         $respostas = array_fill(1, 7, 'nao');
         $respostas[3] = 'sim';
         $base = ['tipo' => 'parq', 'respostas' => $respostas];
@@ -64,7 +72,7 @@ class AtestadoTest extends TestCase
 
     public function test_parq_exige_todas_as_respostas(): void
     {
-        $user = User::factory()->create();
+        $user = $this->comNascimento(User::factory()->create(), 30);
         $this->actingAs($user)->post('/meus-atestados', ['tipo' => 'parq', 'respostas' => [1 => 'nao']])
             ->assertSessionHasErrors('respostas.2');
     }
@@ -180,5 +188,46 @@ class AtestadoTest extends TestCase
         $this->assertSame(3, $conta('?status=todos&search=%25'), '% literal acha so quem tem % no nome');
         $this->assertSame(0, $conta('?status=todos&search=A_a'), '_ nao funciona como curinga');
         $this->assertSame(3, $conta('?status=todos&search=100%25'));
+    }
+
+    public function test_parq_exige_data_de_nascimento_no_perfil(): void
+    {
+        $user = User::factory()->create();
+        $dados = ['tipo' => 'parq', 'respostas' => array_fill(1, 7, 'nao')];
+
+        $this->actingAs($user)->post('/meus-atestados', $dados)->assertSessionHasErrors('tipo');
+        $this->assertSame(0, Atestado::count());
+    }
+
+    public function test_parq_respeita_faixa_etaria(): void
+    {
+        $dados = ['tipo' => 'parq', 'respostas' => array_fill(1, 7, 'nao')];
+
+        foreach ([14, 70] as $idade) {
+            $user = $this->comNascimento(User::factory()->create(), $idade);
+            $this->actingAs($user)->post('/meus-atestados', $dados)->assertSessionHasErrors('tipo');
+        }
+        foreach ([15, 69] as $idade) {
+            $user = $this->comNascimento(User::factory()->create(), $idade);
+            $this->actingAs($user)->post('/meus-atestados', $dados)->assertSessionHasNoErrors();
+        }
+        $this->assertSame(2, Atestado::count());
+    }
+
+    public function test_parq_nao_e_oferecido_fora_da_faixa_etaria(): void
+    {
+        $this->admin();
+        Gate::define('user', fn () => true);
+        $velho = $this->comNascimento(User::factory()->create(), 85);
+        $jovem = $this->comNascimento(User::factory()->create(), 30);
+
+        $this->actingAs($velho)->get('/meus-atestados/create?tipo=parq')
+            ->assertRedirect('/meus-atestados/create?tipo=atestado_medico')
+            ->assertSessionHas('alert-warning');
+        $this->actingAs($velho)->get('/meus-atestados/create?tipo=atestado_medico')->assertOk()->assertDontSee('tipo=parq', false);
+        $this->actingAs($velho)->get('/meus-atestados')->assertOk()->assertDontSee('tipo=parq', false);
+
+        $this->actingAs($jovem)->get('/meus-atestados/create?tipo=parq')->assertOk()->assertSee('respostas[1]', false);
+        $this->actingAs($jovem)->get('/meus-atestados')->assertSee('tipo=parq', false);
     }
 }
