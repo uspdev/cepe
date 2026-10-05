@@ -15,7 +15,7 @@
                     <select name="status" class="form-control">
                         <option value="todos">Todos os status</option>
                         @foreach(config('cepe.atestados.status') as $k => $n)
-                            <option value="{{ $k }}" @selected(request('status', 'em_analise') == $k)>{{ $n }}</option>
+                            <option value="{{ $k }}" @selected((request()->has('status') ? request('status') : 'em_analise') == $k)>{{ $n }}</option>
                         @endforeach
                     </select>
                 </div>

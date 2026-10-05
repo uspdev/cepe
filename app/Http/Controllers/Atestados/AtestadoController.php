@@ -13,7 +13,7 @@ class AtestadoController extends Controller
 {
     private function consulta(Request $request)
     {
-        $status = $request->query('status', 'em_analise');
+        $status = $request->has('status') ? $request->query('status') : 'em_analise';
         $query = Atestado::with('user')->latest();
 
         $hoje = now()->toDateString();
@@ -26,6 +26,8 @@ class AtestadoController extends Controller
                 $query->where('status', 'aprovado')->whereDate('valido_ate', '>=', $hoje);
                 break;
             case 'todos':
+            case null:
+            case '':
                 break;
             default:
                 $query->where('status', $status);
@@ -35,8 +37,8 @@ class AtestadoController extends Controller
             $query->where('tipo', $request->query('tipo'));
         }
         if ($request->filled('search')) {
-            $busca = '%'.addcslashes($request->query('search'), '%_\\').'%';
-            $query->whereHas('user', fn ($q) => $q->where('name', 'like', $busca)->orWhere('email', 'like', $busca));
+            $busca = '%'.strtr($request->query('search'), ['!' => '!!', '%' => '!%', '_' => '!_']).'%';
+            $query->whereHas('user', fn ($q) => $q->whereRaw("name like ? escape '!'", [$busca])->orWhereRaw("email like ? escape '!'", [$busca]));
         }
 
         return $query;

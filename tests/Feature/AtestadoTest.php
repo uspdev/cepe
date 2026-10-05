@@ -155,6 +155,7 @@ class AtestadoTest extends TestCase
     public function test_filtros_da_listagem(): void
     {
         $admin = $this->admin();
+        Gate::define('user', fn () => true);
         $ana = User::factory()->create(['name' => 'Ana Souza', 'email' => 'ana@x.com']);
         $bia = User::factory()->create(['name' => 'Bia 100%', 'email' => 'bia@x.com']);
         $base = ['emitido_em' => now()->subMonths(3)];
@@ -167,15 +168,17 @@ class AtestadoTest extends TestCase
         $conta = fn (string $qs) => $this->actingAs($admin)->get('/atestados'.$qs)->assertOk()->viewData('atestados')->total();
 
         $this->assertSame(1, $conta(''), 'padrão: em análise');
-        $this->assertSame(5, $conta('?status='), 'todos');
+        $this->assertSame(5, $conta('?status=todos'), 'todos');
+        $this->assertSame(5, $conta('?status='), 'vazio equivale a todos');
         $this->assertSame(1, $conta('?status=aprovado'), 'aprovado exclui expirado');
         $this->assertSame(2, $conta('?status=vencido'), 'vencido inclui aprovado expirado');
         $this->assertSame(1, $conta('?status=reprovado'));
-        $this->assertSame(2, $conta('?status=&tipo=parq'));
+        $this->assertSame(2, $conta('?status=todos&tipo=parq'));
         $this->assertSame(1, $conta('?status=vencido&tipo=parq'));
-        $this->assertSame(2, $conta('?status=&search=ana'));
-        $this->assertSame(3, $conta('?status=&search=bia@x'));
-        $this->assertSame(0, $conta('?status=&search=%25'), 'curinga escapado');
-        $this->assertSame(3, $conta('?status=&search=100%25'));
+        $this->assertSame(2, $conta('?status=todos&search=ana'));
+        $this->assertSame(3, $conta('?status=todos&search=bia@x'));
+        $this->assertSame(3, $conta('?status=todos&search=%25'), '% literal acha so quem tem % no nome');
+        $this->assertSame(0, $conta('?status=todos&search=A_a'), '_ nao funciona como curinga');
+        $this->assertSame(3, $conta('?status=todos&search=100%25'));
     }
 }
