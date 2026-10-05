@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Oferecimento;
 use App\Models\TaxaTurma;
 use App\Models\Turma;
 use App\Models\VagaTurma;
@@ -359,6 +360,12 @@ Trazer um Pack de Bolas para os jogos nos dias dos jogos.', 'vagas' => ['tax_in'
         ];
 
         foreach ($turmas as $oferecimentoId => $lista) {
+
+            $oferecimento = Oferecimento::find($oferecimentoId);
+            if (!$oferecimento) {
+                continue;
+            }
+
             if (Turma::where('oferecimento_id', $oferecimentoId)->exists()) {
                 continue;
             }
