@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('matricula_metadados', function (Blueprint $table) {
+
+            $table->id();
+            $table->unsignedBigInteger('matricula_id')->nullable();
+            $table->foreign('matricula_id')->references('id')->on('matriculas')->nullOnDelete();
+            $table->string('chave');
+            $table->string('valor');
+            $table->timestamps();
+
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('matricula_metadados');
+    }
+};

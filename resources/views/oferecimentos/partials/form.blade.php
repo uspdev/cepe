@@ -20,6 +20,9 @@
 
     // Checkbox "ativo" de um período: old() tem precedência; na edição, ativo se existe período salvo
     $periodoAtivo = fn($key) => (bool) old("periodos.{$key}.ativo", $periodosSalvos->has($key));
+
+    // periodo é gravado como 'NN-AAAA' (edição/semestre + ano)
+    [$edicaoSalva, $anoSalvo] = array_pad(explode('-', (string) ($oferecimento?->periodo ?? '')), 2, null);
 @endphp
 
 <!-- Pagamento -->
@@ -43,17 +46,14 @@
 <!-- Período -->
 <div class="form-row">
     <div class="form-group col-auto">
-        <label for="periodo_semestre">Período:</label>
-        <select name="periodo_semestre" id="periodo_semestre" class="form-control form-control-sm">
-            <option value="01" {{ $valor('periodo_semestre') == '01' ? 'selected' : '' }}>01</option>
-            <option value="02" {{ $valor('periodo_semestre', '02') == '02' ? 'selected' : '' }}>02</option>
-        </select>
+        <label for="edicao">Nº Período/Edição:</label>
+        <input type="number" name="edicao" id="edicao" class="form-control form-control-sm" min="1" max="99" style="width: 80px;" value="{{ old('edicao', $edicaoSalva ?? '02') }}">
     </div>
     <div class="form-group col-auto">
-        <label for="periodo_ano">Ano:</label>
-        <select name="periodo_ano" id="periodo_ano" class="form-control form-control-sm">
+        <label for="ano">Ano:</label>
+        <select name="ano" id="ano" class="form-control form-control-sm">
             @for($ano = date('Y'); $ano <= date('Y') + 5; $ano++)
-                <option value="{{ $ano }}" {{ $valor('periodo_ano', date('Y')) == $ano ? 'selected' : '' }}>{{ $ano }}</option>
+                <option value="{{ $ano }}" {{ old('ano', $anoSalvo ?? date('Y')) == $ano ? 'selected' : '' }}>{{ $ano }}</option>
             @endfor
         </select>
     </div>

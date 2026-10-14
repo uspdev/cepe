@@ -9,12 +9,8 @@ class Oferecimento extends Model
 {
     protected $fillable = [
         'atividade_id',
-        'gratuito_ou_sem_pagamento',
-        'sem_inscricoes',
-        'meio_pagamento', // <-- Novo campo
-        'periodo_semestre',
-        'periodo_ano',
-        'curso_regular',
+        'pagamento',
+        'periodo',
         'atestado_medico',
         'exame_dermatologico',
     ];

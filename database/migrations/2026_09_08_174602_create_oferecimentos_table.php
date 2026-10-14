@@ -16,8 +16,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->string('pagamento'); // pix ou boleto
-            $table->string('periodo_semestre', 2);
-            $table->integer('periodo_ano');
+            $table->string('periodo', 10);
             $table->boolean('atestado_medico')->default(false);
             $table->boolean('exame_dermatologico')->default(false);
 

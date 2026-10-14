@@ -14,10 +14,9 @@ class OferecimentoRequest extends FormRequest
 
     public function rules(){
         $rules = [
-            'atividade_id' => 'required',
-            'periodo_semestre' => 'required|in:01,02',
-            'periodo_ano' => 'required|integer',
-            'gratuito_ou_sem_pagamento' => 'nullable',
+            'atividade_id' => 'required|exists:atividades,id',
+            'edicao' => 'required|integer|min:1|max:99',
+            'ano' => 'required|integer|min:2000|max:2100',
             'formas_pagamento' => 'nullable|array',
             'atestado_medico' => 'nullable',
             'exame_dermatologico' => 'nullable',

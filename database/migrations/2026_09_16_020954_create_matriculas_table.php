@@ -13,11 +13,15 @@ return new class extends Migration
     {
         Schema::create('matriculas', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
-            $table->string('a');
-
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
+            $table->string('perfil');
+            $table->unsignedBigInteger('turma_id')->nullable();
+            $table->foreign('turma_id')->references('id')->on('turmas')->nullOnDelete();
+            $table->unsignedTinyInteger('periodo_inscricao')->default(1);
+            $table->string('periodo_oferecimento', 10);
+            $table->string('status');
+            $table->timestamps();
         });
     }
 

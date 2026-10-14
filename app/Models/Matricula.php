@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+use App\Models\User;
+use App\Models\Turma;
+use App\Models\MatriculaMetadado;
 
 class Matricula extends Model
 {
@@ -12,13 +14,13 @@ class Matricula extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function periodo()
-    {
-        return $this->belongsTo(Periodo::class);
-    }
-
     public function turma()
     {
         return $this->belongsTo(Turma::class);
+    }
+    
+    public function metadados()
+    {
+        return $this->hasMany(MatriculaMetadado::class);
     }
 }

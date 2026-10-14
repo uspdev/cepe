@@ -5,10 +5,7 @@
 
     @php
         $formasPagamento = (array) ($oferecimento->formas_pagamento ?? []);
-        if ($oferecimento->gratuito_ou_sem_pagamento) {
-            array_unshift($formasPagamento, 'Gratuito ou sem Pagamento On-Line');
-        }
-        $rotulosPagamento = ['pix' => 'Pix', 'boleto' => 'Boleto'];
+        $rotulosPagamento = ['pix' => 'Pix', 'boleto' => 'Boleto', 'gratuito' => 'Gratuito ou sem Pagamento On-Line'];
 
     @endphp
 
@@ -34,8 +31,8 @@
                     <label class="text-muted font-weight-bold mb-1">Oferecimento</label>
                     <p class="h5 mb-0">
                         #{{ $oferecimento->id }}
-                        @if($oferecimento->periodo_semestre || $oferecimento->periodo_ano)
-                            <span class="text-muted h6">({{ $oferecimento->periodo_semestre }}/{{ $oferecimento->periodo_ano }})</span>
+                        @if($oferecimento->periodo)
+                            <span class="text-muted h6">({{ $oferecimento->periodo }})</span>
                         @endif
                     </p>
                 </div>

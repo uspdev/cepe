@@ -43,8 +43,7 @@ class OferecimentoController extends Controller
         $oferecimento = new Oferecimento;
         $oferecimento->atividade_id = $request->atividade_id;
         $oferecimento->pagamento = serialize($request->formas_pagamento);
-        $oferecimento->periodo_semestre = $request->periodo_semestre;
-        $oferecimento->periodo_ano = $request->periodo_ano;
+        $oferecimento->periodo = sprintf('%02d-%d', $request->edicao, $request->ano);
         $oferecimento->atestado_medico = $request->boolean('atestado_medico');
         $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
         $oferecimento->user_id = auth()->id();
@@ -92,8 +91,7 @@ class OferecimentoController extends Controller
 
         $oferecimento->atividade_id = $request->atividade_id;
         $oferecimento->pagamento = serialize($request->formas_pagamento);
-        $oferecimento->periodo_semestre = $request->periodo_semestre;
-        $oferecimento->periodo_ano = $request->periodo_ano;
+        $oferecimento->periodo = sprintf('%02d-%d', $request->edicao, $request->ano);
         $oferecimento->atestado_medico = $request->boolean('atestado_medico');
         $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
         $oferecimento->user_id = auth()->id();
