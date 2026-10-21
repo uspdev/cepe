@@ -34,6 +34,7 @@ class AtividadeController extends Controller
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
         $atividade->tipo = $request->tipo;
+        $atividade->status = $request->status;
 
         $atividade->user_id = Auth::id();
         $atividade->save();
@@ -59,6 +60,7 @@ class AtividadeController extends Controller
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
         $atividade->tipo = $request->tipo;
+        $atividade->status = $request->status;
 
         $atividade->user_id = Auth::id();
         $atividade->save();

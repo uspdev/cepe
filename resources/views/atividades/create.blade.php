@@ -24,6 +24,15 @@
         </select>
     </div>
 
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-control" id="status" name="status">
+            @foreach(config('cepe.status_atividade') as $key => $value)
+                <option value="{{ $key }}">{{ $value }}</option>
+            @endforeach
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-primary">Enviar</button>
 </form>
 

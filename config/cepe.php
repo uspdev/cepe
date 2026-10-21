@@ -1,6 +1,10 @@
 <?php
 
 return [
+    'status_atividade' => [
+        'ativo' => 'Ativo',
+        'inativo' => 'Inativo',
+    ],
     'perfil' => [
         'tax_papfe' => 'PAPFE',
         'tax_alumni' => 'Alumni',

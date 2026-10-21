@@ -36,6 +36,7 @@
                         <tr>
                             <th>Nome</th>
                             <th>Descrição</th>
+                            <th>Status</th>
                             <th class="text-end">Ação</th>
                         </tr>
                     </thead>
@@ -50,6 +51,11 @@
                                 </td>
                                 <td class="text-muted">
                                     {{ $atividade->descricao }}
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ $atividade->status === 'ativo' ? 'success' : 'danger' }}">
+                                        {{ config('cepe.status_atividade.' . $atividade->status) }}
+                                    </span>
                                 </td>
                                 <td class="text-end">
                                     <a href="/atividades/{{ $atividade->id }}" class="btn btn-sm btn-outline-primary">

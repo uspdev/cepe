@@ -11,6 +11,7 @@ class Atividade extends Model
         'nome',
         'descricao',
         'tipo',
+        'status',
     ];
 
     public function user()

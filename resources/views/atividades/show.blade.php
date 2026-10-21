@@ -30,6 +30,11 @@
                 <label class="form-label text-muted fw-bold">Tipo</label>
                 <p class="mb-0">{{ config('cepe.tipos_inscricao.' . $atividade->tipo) }}</p>
             </div>
+            
+            <div class="mb-3">
+                <label class="form-label text-muted fw-bold">Status</label>
+                <p class="mb-0">{{ config('cepe.status_atividade.' . $atividade->status) }}</p>
+            </div>
         </div>
 
         <!-- Rodapé com os Botões de Ação -->

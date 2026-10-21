@@ -16,6 +16,7 @@ return new class extends Migration
             $table->timestamps();
             $table->string('nome');
             $table->text('descricao');
+            $table->string('status')->default('inativo');
 
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
