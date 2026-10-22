@@ -33,6 +33,27 @@ return [
         'segundo' => 'Segundo Período de Inscrições',
         'curso' => 'Período do Curso',
     ],
+    'periodo_perfis' => [
+        'usp' => ['tax_in'],
+        'papfe' => ['tax_papfe'],
+        'cepeusp' => ['tax_cepe'],
+        'alumni' => ['tax_alumni'],
+        'externa' => ['tax_ex'],
+        'segundo' => ['tax_in', 'tax_papfe', 'tax_ex', 'tax_alumni', 'tax_cepe', 'tax_ter', 'tax_child'],
+        'curso' => [],
+    ],
+    'status_matricula' => [
+        'matriculada' => 'Matriculada',
+        'cancelada' => 'Cancelada',
+    ],
+    'grupos_catalogo' => [
+        'cursos' => ['mensal', 'bimestral', 'trimestral', 'semestral'],
+        'eventos' => ['eventos'],
+    ],
+    'limite_cursos' => [
+        'primeiro' => 1,
+        'total' => 10,
+    ],
     'tamanhos_camiseta' => [
         'voltausp' => [
             'pp' => 'PP', 'p' => 'P', 'm' => 'M', 'g' => 'G', 'gg' => 'GG', 'exg' => 'EXG',

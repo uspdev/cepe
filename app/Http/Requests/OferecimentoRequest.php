@@ -20,6 +20,7 @@ class OferecimentoRequest extends FormRequest
             'formas_pagamento' => 'nullable|array',
             'atestado_medico' => 'nullable',
             'exame_dermatologico' => 'nullable',
+            'limitar_matricula' => 'nullable',
         ];
 
         $rules['periodos.*.ativo'] = 'nullable';

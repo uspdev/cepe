@@ -39,15 +39,22 @@ Route::controller(TurmaController::class)->prefix('turmas')->name('turmas.')->gr
     Route::patch('/{turma}', 'update')->name('update');
     Route::delete('/{turma}', 'destroy')->name('destroy');
 });
-use App\Http\Controllers\MatriculaController;
+use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\InscricaoController;
+use App\Http\Controllers\MinhasInscricoesController;
 
-Route::get('/matriculas', [MatriculaController::class, 'index']);
-Route::get('/matriculas/create', [MatriculaController::class, 'create']);
-Route::post('/matriculas', [MatriculaController::class, 'store']);
-Route::get('/matriculas/{matricula}', [MatriculaController::class, 'show']);
-Route::get('/matriculas/{matricula}/edit', [MatriculaController::class, 'edit']);
-Route::patch('/matriculas/{matricula}', [MatriculaController::class, 'update']);
-Route::delete('/matriculas/{matricula}', [MatriculaController::class, 'destroy']);
+// Catálogo (desenvolvimento: vitrine de cursos e eventos)
+Route::get('/cursos', [CatalogoController::class, 'cursos'])->name('catalogo.cursos');
+Route::get('/eventos', [CatalogoController::class, 'eventos'])->name('catalogo.eventos');
+Route::get('/{atividade}', [CatalogoController::class, 'show'])->name('catalogo.show')->whereNumber('atividade');
+
+// Inscrições e área do usuário
+Route::middleware('auth')->group(function () {
+    Route::get('/inscricoes/{turma}', [InscricaoController::class, 'create'])->name('inscricoes.create');
+    Route::post('/inscricoes/{turma}', [InscricaoController::class, 'store'])->name('inscricoes.store');
+    Route::get('/minhas-inscricoes', [MinhasInscricoesController::class, 'index'])->name('minhas-inscricoes.index');
+    Route::patch('/minhas-inscricoes/{matricula}/cancelar', [MinhasInscricoesController::class, 'cancelar'])->name('minhas-inscricoes.cancelar');
+});
 
 use App\Http\Controllers\Atestados\AtestadoController;
 use App\Http\Controllers\Atestados\MeusAtestadosController;

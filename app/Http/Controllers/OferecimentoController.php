@@ -46,6 +46,7 @@ class OferecimentoController extends Controller
         $oferecimento->periodo = sprintf('%02d-%d', $request->edicao, $request->ano);
         $oferecimento->atestado_medico = $request->boolean('atestado_medico');
         $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
+        $oferecimento->limitar_matricula = $request->boolean('limitar_matricula');
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
 
@@ -94,9 +95,10 @@ class OferecimentoController extends Controller
         $oferecimento->periodo = sprintf('%02d-%d', $request->edicao, $request->ano);
         $oferecimento->atestado_medico = $request->boolean('atestado_medico');
         $oferecimento->exame_dermatologico = $request->boolean('exame_dermatologico');
+        $oferecimento->limitar_matricula = $request->boolean('limitar_matricula');
         $oferecimento->user_id = auth()->id();
         $oferecimento->save();
-        
+
         if ($request->has('periodos') && is_array($request->periodos)) {
             foreach ($request->periodos as $perfilKey => $dados) {
                 if(empty($dados['ativo'])) {

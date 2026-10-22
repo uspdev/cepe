@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('periodo', 10);
             $table->boolean('atestado_medico')->default(false);
             $table->boolean('exame_dermatologico')->default(false);
+            $table->boolean('limitar_matricula')->default(false);
 
             $table->unsignedBigInteger('atividade_id')->nullable();
             $table->foreign('atividade_id')->references('id')->on('atividades')->nullOnDelete();

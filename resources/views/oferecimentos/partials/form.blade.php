@@ -47,7 +47,7 @@
 <div class="form-row">
     <div class="form-group col-auto">
         <label for="edicao">Nº Período/Edição:</label>
-        <input type="number" name="edicao" id="edicao" class="form-control form-control-sm" min="1" max="99" style="width: 80px;" value="{{ old('edicao', $edicaoSalva ?? '02') }}">
+        <input type="number" name="edicao" id="edicao" class="form-control form-control-sm" min="1" max="99" style="width: 80px;" value="{{ old('edicao', intval($edicaoSalva) ?? '02') }}">
     </div>
     <div class="form-group col-auto">
         <label for="ano">Ano:</label>
@@ -106,4 +106,11 @@
         <input type="checkbox" class="form-check-input" id="exame_dermatologico" name="exame_dermatologico" value="1" {{ $marcou('exame_dermatologico') ? 'checked' : '' }}>
         <label class="form-check-label" for="exame_dermatologico">Exame Dermatológico Obrigatório</label>
     </div>
+
+    @if($atividade->tipo === 'semestral')
+        <div class="form-check mb-2 ml-2">
+            <input type="checkbox" class="form-check-input" id="limitar_matricula" name="limitar_matricula" value="1" {{ old('limitar_matricula', $oferecimento?->limitar_matricula ?? true) ? 'checked' : '' }}>
+            <label class="form-check-label" for="limitar_matricula">Limitar a uma matrícula por período de inscrição</label>
+        </div>
+    @endif
 </div>

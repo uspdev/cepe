@@ -48,6 +48,11 @@ class User extends Authenticatable
         return $this->hasMany(Atestado::class);
     }
 
+    public function matriculas()
+    {
+        return $this->hasMany(Matricula::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

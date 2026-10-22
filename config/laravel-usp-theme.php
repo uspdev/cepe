@@ -21,6 +21,21 @@ $menu = [
         'key' => 'menu_dinamico',
     ],
     [
+        'text' => 'Cursos',
+        'url' => config('app.url').'/cursos',
+        'can' => 'user',
+    ],
+    [
+        'text' => 'Eventos',
+        'url' => config('app.url').'/eventos',
+        'can' => 'user',
+    ],
+    [
+        'text' => 'Minhas inscrições',
+        'url' => config('app.url').'/minhas-inscricoes',
+        'can' => 'user',
+    ],
+    [
         'text' => 'Atividades',
         'submenu' => $atividades,
         'can' => 'admin',
