@@ -50,7 +50,7 @@
                                     <span class="badge bg-secondary ms-2">{{ config('cepe.tipos_inscricao.' . $atividade->tipo) }}</span>
                                 </td>
                                 <td class="text-muted">
-                                    {{ $atividade->descricao }}
+                                    {{ Str::limit($atividade->descricao, 120) }}
                                 </td>
                                 <td>
                                     <span class="badge bg-{{ $atividade->status === 'ativo' ? 'success' : 'danger' }}">
@@ -65,7 +65,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center py-4 text-muted">
+                                <td colspan="4" class="text-center py-4 text-muted">
                                     Nenhuma atividade encontrada.
                                 </td>
                             </tr>

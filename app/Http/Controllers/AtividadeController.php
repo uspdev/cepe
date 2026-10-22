@@ -12,11 +12,12 @@ class AtividadeController extends Controller
 {
     public function index(Request $request){
         Gate::authorize('admin');
-        if($request->has('search')){
-            $atividades = Atividade::where('nome','like','%'.$request->search.'%')->get();
-        } else {
-            $atividades = Atividade::all();
-        }
+        $atividades = Atividade::where('status', '!=', 'excluido')
+            ->when($request->filled('search'), fn($q) => $q->where(fn($w) =>
+                $w->where('nome', 'like', "%{$request->search}%")
+                  ->orWhere('descricao', 'like', "%{$request->search}%")))
+            ->orderBy('nome')
+            ->get();
 
         return view('atividades.index',[
             'atividades' => $atividades
@@ -38,6 +39,7 @@ class AtividadeController extends Controller
 
         $atividade->user_id = Auth::id();
         $atividade->save();
+        session()->flash('alert-success', 'Atividade cadastrada com sucesso.');
         return redirect('/atividades');
     }
 
@@ -64,13 +66,15 @@ class AtividadeController extends Controller
 
         $atividade->user_id = Auth::id();
         $atividade->save();
+        session()->flash('alert-success', 'Atividade atualizada com sucesso.');
         return redirect("/atividades/{$atividade->id}");
     }
 
     public function destroy(Atividade $atividade)
     {
         Gate::authorize('admin');
-        $atividade->delete();
+        $atividade->update(['status' => 'excluido']);
+        session()->flash('alert-success', 'Atividade excluída com sucesso.');
         return redirect('/atividades');
     }
 }

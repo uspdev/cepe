@@ -23,7 +23,7 @@ $menu = [
     [
         'text' => 'Atividades',
         'submenu' => $atividades,
-        'can' => '',
+        'can' => 'admin',
     ],
     [
         'text' => 'Atestados',

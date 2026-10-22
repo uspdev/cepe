@@ -29,7 +29,9 @@
         <label for="status" class="form-label">Status</label>
         <select class="form-control" id="status" name="status">
             @foreach(config('cepe.status_atividade') as $key => $value)
-                <option value="{{ $key }}" @selected(old('status', $atividade->status) == $key)>{{ $value }}</option>
+                @unless($key === 'excluido')
+                    <option value="{{ $key }}" @selected(old('status', $atividade->status) == $key)>{{ $value }}</option>
+                @endunless
             @endforeach
         </select>
     </div>

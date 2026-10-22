@@ -4,6 +4,7 @@ return [
     'status_atividade' => [
         'ativo' => 'Ativo',
         'inativo' => 'Inativo',
+        'excluido' => 'Excluído',
     ],
     'perfil' => [
         'tax_papfe' => 'PAPFE',

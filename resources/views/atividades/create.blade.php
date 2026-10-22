@@ -19,7 +19,7 @@
         <label for="tipo" class="form-label">Tipo</label>
         <select class="form-control" id="tipo" name="tipo">
             @foreach(config('cepe.tipos_inscricao') as $key => $value)
-                <option value="{{ $key }}">{{ $value }}</option>
+                <option value="{{ $key }}" @selected(old('tipo') == $key)>{{ $value }}</option>
             @endforeach
         </select>
     </div>
@@ -28,7 +28,9 @@
         <label for="status" class="form-label">Status</label>
         <select class="form-control" id="status" name="status">
             @foreach(config('cepe.status_atividade') as $key => $value)
-                <option value="{{ $key }}">{{ $value }}</option>
+                @unless($key === 'excluido')
+                    <option value="{{ $key }}" @selected(old('status') == $key)>{{ $value }}</option>
+                @endunless
             @endforeach
         </select>
     </div>

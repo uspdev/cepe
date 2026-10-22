@@ -46,7 +46,7 @@
             <form action="/atividades/{{ $atividade->id }}" method="POST" class="d-inline">
                 @csrf
                 @method('DELETE')
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja apagar esta atividade?');">
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Tem certeza que deseja excluir esta atividade? Ela será marcada como excluída.');">
                     Apagar
                 </button>
             </form>
@@ -78,8 +78,7 @@
                             <tr>
                                 <td class="fw-bold">{{ $oferecimento->id }}</td>
                                 <td>
-                                    {{-- Adapte o campo abaixo conforme os atributos da sua model Oferecimento (ex: $oferecimento->data, $oferecimento->turma, etc) --}}
-                                    {{ $oferecimento->nome ?? $oferecimento->descricao ?? 'Oferecimento #' . $oferecimento->id }}
+                                    Período {{ $oferecimento->periodo }}
                                 </td>
                                 <td class="text-end">
                                     <a href="/oferecimentos/{{ $atividade->id }}/{{ $oferecimento->id }}" class="btn btn-sm btn-outline-primary">
