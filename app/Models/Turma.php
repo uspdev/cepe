@@ -50,6 +50,11 @@ class Turma extends Model
         return $this->hasMany(VagaTurma::class);
     }
 
+    public function filas()
+    {
+        return $this->hasMany(Fila::class);
+    }
+
     public function configuracaoVagas(): array
     {
         return VagaTurma::configuracao($this->oferecimento?->atividade?->tipo);

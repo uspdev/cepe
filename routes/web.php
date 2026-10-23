@@ -5,6 +5,13 @@ use App\Http\Controllers\IndexController;
 use App\Http\Controllers\OferecimentoController;
 use App\Http\Controllers\TurmaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Atestados\AtestadoController;
+use App\Http\Controllers\Atestados\MeusAtestadosController;
+use App\Http\Controllers\Perfil\PerfilController;
+use App\Http\Controllers\CatalogoController;
+use App\Http\Controllers\FilaController;
+use App\Http\Controllers\InscricaoController;
+use App\Http\Controllers\MinhasInscricoesController;
 
 Route::get('/', [IndexController::class, 'index'])->name('home');
 
@@ -39,9 +46,6 @@ Route::controller(TurmaController::class)->prefix('turmas')->name('turmas.')->gr
     Route::patch('/{turma}', 'update')->name('update');
     Route::delete('/{turma}', 'destroy')->name('destroy');
 });
-use App\Http\Controllers\CatalogoController;
-use App\Http\Controllers\InscricaoController;
-use App\Http\Controllers\MinhasInscricoesController;
 
 // Catálogo (desenvolvimento: vitrine de cursos e eventos)
 Route::get('/cursos', [CatalogoController::class, 'cursos'])->name('catalogo.cursos');
@@ -52,13 +56,15 @@ Route::get('/{atividade}', [CatalogoController::class, 'show'])->name('catalogo.
 Route::middleware('auth')->group(function () {
     Route::get('/inscricoes/{turma}', [InscricaoController::class, 'create'])->name('inscricoes.create');
     Route::post('/inscricoes/{turma}', [InscricaoController::class, 'store'])->name('inscricoes.store');
+    Route::post('/inscricoes/{turma}/fila', [FilaController::class, 'entrar'])->name('filas.entrar');
+    Route::post('/filas/{turma}', [FilaController::class, 'store'])->name('filas.store');
+    Route::get('/inscricoes/{turma}/fila/status', [FilaController::class, 'status'])->name('filas.status');
+    Route::get('/filas/{turma}/status', [FilaController::class, 'status']);
     Route::get('/minhas-inscricoes', [MinhasInscricoesController::class, 'index'])->name('minhas-inscricoes.index');
     Route::patch('/minhas-inscricoes/{matricula}/cancelar', [MinhasInscricoesController::class, 'cancelar'])->name('minhas-inscricoes.cancelar');
 });
 
-use App\Http\Controllers\Atestados\AtestadoController;
-use App\Http\Controllers\Atestados\MeusAtestadosController;
-use App\Http\Controllers\Perfil\PerfilController;
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/perfil', [PerfilController::class, 'edit']);

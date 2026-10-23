@@ -53,6 +53,11 @@ class User extends Authenticatable
         return $this->hasMany(Matricula::class);
     }
 
+    public function filas()
+    {
+        return $this->hasMany(Fila::class);
+    }
+
     /**
      * Get the attributes that should be cast.
      *

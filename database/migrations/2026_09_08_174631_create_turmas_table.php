@@ -19,6 +19,23 @@ return new class extends Migration
 
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();
+
+            $table->json('sexo')->nullable();
+            $table->json('dias_semana')->nullable();
+            $table->time('horario_inicio')->nullable();
+            $table->time('horario_fim')->nullable();
+            $table->string('professor')->nullable();
+            $table->integer('idade_minima')->nullable();
+            $table->integer('idade_maxima')->nullable();
+            $table->string('nivel')->nullable();
+            $table->string('local')->nullable();
+            $table->integer('vagas_usp')->nullable();
+            $table->integer('vagas_papfe')->nullable();
+            $table->integer('vagas_externa')->nullable();
+            $table->text('observacoes')->nullable();
+
+            $table->text('info_contato')->nullable();
+            $table->text('declaracao')->nullable();
         });
     }
 
