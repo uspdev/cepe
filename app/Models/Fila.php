@@ -13,6 +13,7 @@ class Fila extends Model
         'vagas_turma_id',
         'turma_id',
         'posicao',
+        'perfil',
         'status',
         'head',
     ];
@@ -36,6 +37,14 @@ class Fila extends Model
     public function vagaTurma()
     {
         return $this->belongsTo(VagaTurma::class, 'vagas_turma_id');
+    }
+
+    /**
+     * Entradas ativas (aguardando ou em atendimento) de uma turma.
+     */
+    public function scopeAtivasDaTurma($query, Turma $turma)
+    {
+        return $query->where('turma_id', $turma->id)->where('status', true);
     }
 }
 

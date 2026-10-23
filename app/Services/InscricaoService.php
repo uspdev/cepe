@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Fila;
 use App\Models\Matricula;
 use App\Models\Oferecimento;
 use App\Models\Turma;
@@ -44,16 +45,16 @@ class InscricaoService
      * Vagas disponíveis para um perfil. Nos períodos normais conta o bucket do
      * perfil; no período 'segundo' o pool é compartilhado entre todos os perfis.
      */
-    public function vagasDisponiveis(Turma $turma, string $perfil): int
+    public function vagasDisponiveis(Turma $turma, string $perfil, int $filaAFrente = 0): int
     {
         $turma->loadMissing(['vagas', 'matriculas']);
         $ativas = $turma->matriculas->where('status', '<>', Matricula::CANCELADA);
 
         if ($this->segundoPeriodoAberto($turma->oferecimento)) {
-            return $turma->vagas->sum('quantidade') - $ativas->count();
+            return $turma->vagas->sum('quantidade') - $ativas->count() - $filaAFrente;
         }
 
-        return $turma->vagasDoPerfil($perfil) - $ativas->where('perfil', $perfil)->count();
+        return $turma->vagasDoPerfil($perfil) - $ativas->where('perfil', $perfil)->count() - $filaAFrente;
     }
 
     /** Se o usuário pode se inscrever com o perfil informado. */
@@ -65,7 +66,7 @@ class InscricaoService
         return match ($perfil) {
             'tax_ex' => true,
             'tax_ter' => ($perfilUsuario->idade ?? 0) >= 60,
-            'tax_papfe' => filled($perfilUsuario->numero_cepeusp),
+            'tax_cepe' => filled($perfilUsuario->numero_cepeusp),
             default => $credenciado,
         };
     }
@@ -181,11 +182,37 @@ class InscricaoService
             $erros[] = 'Esta atividade exige exame dermatológico aprovado. Envie o documento em "Meus atestados".';
         }
 
-        if ($this->perfisDisponiveis($turma, $user) === []) {
+        // Elegibilidade (não disponibilidade): vagas esgotadas não bloqueiam — a fila cobre isso
+        if ($this->perfisElegiveis($turma, $user) === []) {
             $erros[] = 'Não há vagas disponíveis para o seu perfil nesta turma.';
         }
 
         return $erros;
+    }
+
+    /**
+     * Perfis que o usuário pode escolher: permitidos pelo período, com bucket
+     * na turma e elegibilidade atendida — independente de haver vaga livre.
+     *
+     * @return array<string, array{label: string, valor: ?float}>
+     */
+    public function perfisElegiveis(Turma $turma, User $user): array
+    {
+        $periodoInscricao = $this->periodoInscricaoAtual($turma->oferecimento);
+        $opcoes = [];
+
+        foreach ($this->perfisPermitidos($turma) as $perfil) {
+            if (! $this->elegivel($perfil, $user)) {
+                continue;
+            }
+
+            $opcoes[$perfil] = [
+                'label' => config('cepe.perfil.' . $perfil, $perfil),
+                'valor' => $turma->taxaDoPerfil($perfil, $periodoInscricao)?->valor,
+            ];
+        }
+
+        return $opcoes;
     }
 
     /**
@@ -225,6 +252,133 @@ class InscricaoService
 
             return $matricula;
         });
+    }
+
+    /**
+     * Entrada ativa do usuário na fila da turma, ou null.
+     */
+    public function filaAtiva(Turma $turma, User $user): ?Fila
+    {
+        return Fila::ativasDaTurma($turma)->where('user_id', $user->id)->latest('posicao')->first();
+    }
+
+    /**
+     * Insere o usuário na fila da turma (idempotente) e registra heartbeat —
+     * todo usuário que inicia a inscrição é inserido, para o levantamento do
+     * número de interessados na modalidade. O perfil é opcional na entrada e
+     * pode ser escolhido/atualizado depois (mantém a posição).
+     */
+    public function entrarNaFila(Turma $turma, User $user, ?string $perfil = null): Fila
+    {
+        $elegiveis = $this->perfisElegiveis($turma, $user);
+
+        // Perfil único elegível: não exige escolha — registra direto na fila
+        if ($perfil === null && count($elegiveis) === 1) {
+            $perfil = array_key_first($elegiveis);
+        }
+
+        if ($perfil !== null && ! array_key_exists($perfil, $elegiveis)) {
+            throw ValidationException::withMessages([
+                'perfil' => 'Escolha um perfil de inscrição disponível.',
+            ]);
+        }
+
+        if ($fila = $this->filaAtiva($turma, $user)) {
+            $fila->fill(['perfil' => $perfil ?? $fila->perfil])->save();
+            $fila->touch();
+
+            return $fila;
+        }
+
+        return DB::transaction(function () use ($turma, $user, $perfil) {
+            // posição cresce sem reutilizar números, para fins de levantamento
+            $posicao = (int) Fila::where('turma_id', $turma->id)->lockForUpdate()->max('posicao') + 1;
+
+            return Fila::create([
+                'user_id' => $user->id,
+                'turma_id' => $turma->id,
+                'posicao' => $posicao,
+                'perfil' => $perfil,
+                'status' => true,
+            ]);
+        });
+    }
+
+    /**
+     * Quantas pessoas ainda ativas na fila disputam o bucket do perfil.
+     * Com $fila, conta só quem está à frente (posicao menor); sem $fila,
+     * conta todos os filados do bucket. Entradas sem perfil escolhido contam
+     * em todos os buckets. No período 'segundo' o pool é compartilhado e
+     * todos à frente contam. Entradas sem heartbeat recente (fila_ttl) não
+     * bloqueiam quem está atrás.
+     */
+    public function filaAFrente(Turma $turma, ?Fila $fila, ?string $perfil = null): int
+    {
+        $query = Fila::ativasDaTurma($turma)
+            ->where('updated_at', '>=', now()->subSeconds(config('cepe.fila_ttl')));
+
+        if ($fila) {
+            $query->where('posicao', '<', $fila->posicao);
+        }
+
+        if (! $this->segundoPeriodoAberto($turma->oferecimento)) {
+            $perfil ??= $fila?->perfil;
+            $query->where(fn ($q) => $q->where('perfil', $perfil)->orWhereNull('perfil'));
+        }
+
+        return $query->count();
+    }
+
+    /**
+     * Perfis elegíveis que ainda têm vaga livre para o usuário: desconta
+     * matriculados e os filados à frente dele em cada bucket.
+     *
+     * @return array<string, array{label: string, valor: ?float, vagas: int}>
+     */
+    public function perfisLivres(Turma $turma, User $user, ?Fila $fila = null): array
+    {
+        $fila ??= $this->filaAtiva($turma, $user);
+        $periodoInscricao = $this->periodoInscricaoAtual($turma->oferecimento);
+        $opcoes = [];
+
+        foreach (array_keys($this->perfisElegiveis($turma, $user)) as $perfil) {
+            if ($fila?->perfil && $perfil !== $fila->perfil) {
+                continue; // quem escolheu perfil na fila só disputa aquele bucket
+            }
+
+            $vagas = $this->vagasDisponiveis($turma, $perfil, $this->filaAFrente($turma, $fila, $perfil));
+            if ($vagas > 0) {
+                $opcoes[$perfil] = [
+                    'label' => config('cepe.perfil.' . $perfil, $perfil),
+                    'valor' => $turma->taxaDoPerfil($perfil, $periodoInscricao)?->valor,
+                    'vagas' => $vagas,
+                ];
+            }
+        }
+
+        return $opcoes;
+    }
+
+    /**
+     * É a vez do usuário quando existe perfil com vaga livre descontando
+     * matriculados e quem está à frente na fila. Sem entrada na fila, não
+     * pode ser a vez (é preciso registrar o interesse primeiro).
+     */
+    public function isVez(Turma $turma, User $user, ?Fila $fila = null): bool
+    {
+        $fila ??= $this->filaAtiva($turma, $user);
+
+        return (bool) $fila && $this->perfisLivres($turma, $user, $fila) !== [];
+    }
+
+    /**
+     * Menor posição ainda ativa e com heartbeat fresco (o "atendimento" atual).
+     */
+    public function filaHead(Turma $turma): int
+    {
+        return (int) Fila::ativasDaTurma($turma)
+            ->where('updated_at', '>=', now()->subSeconds(config('cepe.fila_ttl')))
+            ->min('posicao') ?: 1;
     }
 
     /** Atestado médico aprovado e vigente; PAR-Q substitui dentro da faixa etária. */

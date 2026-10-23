@@ -17,7 +17,7 @@ class InscricaoRequest extends FormRequest
     {
         $turma = $this->route('turma');
         $perfis = $turma
-            ? array_keys(app(InscricaoService::class)->perfisDisponiveis($turma, $this->user()))
+            ? array_keys(app(InscricaoService::class)->perfisElegiveis($turma, $this->user()))
             : [];
 
         return [

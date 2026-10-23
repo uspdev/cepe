@@ -54,6 +54,8 @@ return [
         'primeiro' => 1,
         'total' => 10,
     ],
+    // segundos sem heartbeat após os quais uma entrada da fila de inscrição deixa de bloquear os demais
+    'fila_ttl' => 120,
     'tamanhos_camiseta' => [
         'voltausp' => [
             'pp' => 'PP', 'p' => 'P', 'm' => 'M', 'g' => 'G', 'gg' => 'GG', 'exg' => 'EXG',

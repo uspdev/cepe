@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\InscricaoRequest;
-use App\Models\Fila;
 use App\Models\Turma;
 use App\Services\InscricaoService;
+use Illuminate\Validation\ValidationException;
 
 class InscricaoController extends Controller
 {
@@ -18,53 +18,50 @@ class InscricaoController extends Controller
         $turma->loadMissing(['oferecimento.atividade', 'oferecimento.periodos', 'vagas', 'taxas']);
 
         $user = auth()->user();
-        $minhaFila = Fila::where('user_id', $user->id)
-            ->where(function ($q) use ($turma) {
-                $q->where('turma_id', $turma->id)
-                    ->orWhereHas('vagaTurma', fn ($v) => $v->where('turma_id', $turma->id));
-            })
-            ->where('status', true)
-            ->latest()
-            ->first();
+        $erros = $this->inscricoes->validar($turma, $user);
 
-        $headRecord = Fila::where(function ($q) use ($turma) {
-                $q->where('turma_id', $turma->id)
-                    ->orWhereHas('vagaTurma', fn ($v) => $v->where('turma_id', $turma->id));
-            })
-            ->where('head', true)
-            ->where('status', true)
-            ->first();
-
-        $head = $headRecord ? $headRecord->posicao : (Fila::where('turma_id', $turma->id)->where('status', true)->min('posicao') ?? 1);
-        $posicao = $minhaFila?->posicao;
-        $isHead = $minhaFila ? (bool) $minhaFila->head : false;
+        // Todo usuário apto entra na fila ao abrir a inscrição — registra o
+        // interesse na modalidade e estabelece posição caso falte vaga.
+        $fila = $erros ? null : $this->inscricoes->entrarNaFila($turma, $user);
 
         return view('inscricoes.create', [
             'turma' => $turma,
-            'erros' => $this->inscricoes->validar($turma, $user),
-            'perfis' => $this->inscricoes->perfisDisponiveis($turma, $user),
-            'minhaFila' => $minhaFila,
-            'posicao' => $posicao,
-            'head' => $head,
-            'isHead' => $isHead,
+            'erros' => $erros,
+            'perfisElegiveis' => $this->inscricoes->perfisElegiveis($turma, $user),
+            'perfisLivres' => $this->inscricoes->perfisLivres($turma, $user, $fila),
+            'minhaFila' => $fila,
+            'posicao' => $fila?->posicao,
+            'head' => $this->inscricoes->filaHead($turma),
+            'isHead' => (bool) $fila && $this->inscricoes->isVez($turma, $user, $fila),
         ]);
     }
 
     public function store(InscricaoRequest $request, Turma $turma)
     {
-        $matricula = $this->inscricoes->inscrever($turma, $request->user(), $request->perfil, [
+        $user = $request->user();
+        $fila = $this->inscricoes->filaAtiva($turma, $user) ?? $this->inscricoes->entrarNaFila($turma, $user);
+
+        if (! $this->inscricoes->isVez($turma, $user, $fila)) {
+            throw ValidationException::withMessages([
+                'inscricao' => $fila->perfil
+                    ? 'Ainda não é a sua vez na fila de inscrição. Aguarde na página de inscrição.'
+                    : 'As vagas estão esgotadas para o seu perfil. Entre na fila de inscrição pela página da turma.',
+            ]);
+        }
+
+        // Na fila com perfil escolhido, usa-o; senão, valida o do formulário contra o que está livre
+        $perfil = $fila->perfil ?? $request->perfil;
+        if (! array_key_exists($perfil, $this->inscricoes->perfisLivres($turma, $user, $fila))) {
+            throw ValidationException::withMessages(['perfil' => 'Perfil indisponível para inscrição.']);
+        }
+
+        $matricula = $this->inscricoes->inscrever($turma, $user, $perfil, [
             'image_use_authorization' => $request->image_use_authorization,
             'regulamento_aceito' => 'sim',
             'regulamento_ip' => $request->ip(),
         ]);
 
-        Fila::where('user_id', $request->user()->id)
-            ->where(function ($q) use ($turma) {
-                $q->where('turma_id', $turma->id)
-                    ->orWhereHas('vagaTurma', fn ($v) => $v->where('turma_id', $turma->id));
-            })
-            ->where('status', true)
-            ->update(['status' => false, 'head' => false]);
+        $fila->update(['status' => false, 'perfil' => $perfil]);
 
         return redirect('/minhas-inscricoes')
             ->with('alert-success', 'Inscrição realizada com sucesso!');

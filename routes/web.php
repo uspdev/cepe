@@ -57,9 +57,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/inscricoes/{turma}', [InscricaoController::class, 'create'])->name('inscricoes.create');
     Route::post('/inscricoes/{turma}', [InscricaoController::class, 'store'])->name('inscricoes.store');
     Route::post('/inscricoes/{turma}/fila', [FilaController::class, 'entrar'])->name('filas.entrar');
-    Route::post('/filas/{turma}', [FilaController::class, 'store'])->name('filas.store');
     Route::get('/inscricoes/{turma}/fila/status', [FilaController::class, 'status'])->name('filas.status');
-    Route::get('/filas/{turma}/status', [FilaController::class, 'status']);
     Route::get('/minhas-inscricoes', [MinhasInscricoesController::class, 'index'])->name('minhas-inscricoes.index');
     Route::patch('/minhas-inscricoes/{matricula}/cancelar', [MinhasInscricoesController::class, 'cancelar'])->name('minhas-inscricoes.cancelar');
 });
