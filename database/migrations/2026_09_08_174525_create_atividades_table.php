@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('nome');
             $table->text('descricao');
             $table->string('status')->default('inativo');
+            $table->string('tipo')->nullable();
 
             $table->unsignedBigInteger('user_id')->nullable();
             $table->foreign('user_id')->references('id')->on('users')->nullOnDelete();

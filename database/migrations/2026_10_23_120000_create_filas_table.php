@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('vagas_turma_id')->nullable()->constrained('vagas_turma')->onDelete('cascade');
             $table->foreignId('turma_id')->nullable()->constrained('turmas')->onDelete('cascade');
             $table->integer('posicao');
+            $table->string('perfil')->nullable();
             $table->boolean('status')->default(true);
             $table->boolean('head')->default(false);
             $table->timestamps();
@@ -24,6 +25,7 @@ return new class extends Migration
             $table->index(['turma_id', 'status']);
             $table->index(['vagas_turma_id', 'status']);
             $table->index(['user_id', 'status']);
+            $table->index(['turma_id', 'perfil', 'status']);
         });
     }
 
