@@ -23,12 +23,12 @@ $menu = [
     [
         'text' => 'Cursos',
         'url' => config('app.url').'/cursos',
-        'can' => 'user',
+        'can' => '',
     ],
     [
         'text' => 'Eventos',
         'url' => config('app.url').'/eventos',
-        'can' => 'user',
+        'can' => '',
     ],
     [
         'text' => 'Minhas inscrições',

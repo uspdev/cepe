@@ -48,7 +48,7 @@ return [
     ],
     'grupos_catalogo' => [
         'cursos' => ['mensal', 'bimestral', 'trimestral', 'semestral'],
-        'eventos' => ['eventos'],
+        'eventos' => ['eventos', 'voltausp', 'voltinha'],
     ],
     'limite_cursos' => [
         'primeiro' => 1,
