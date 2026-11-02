@@ -20,16 +20,12 @@ return new class extends Migration
             $table->foreign('turma_id')->references('id')->on('turmas')->nullOnDelete();
             $table->unsignedTinyInteger('periodo_inscricao')->default(1);
             $table->string('periodo_oferecimento', 10);
+            $table->unsignedInteger('valor_base')->nullable();
+            $table->unsignedInteger('desconto')->default(0);
+            $table->unsignedInteger('valor')->nullable();
+            $table->integer('credito_usado')->default(0);
             $table->string('status');
             $table->timestamps();
         });
-    }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('matriculas');
     }
 };

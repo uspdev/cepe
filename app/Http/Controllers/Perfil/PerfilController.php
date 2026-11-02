@@ -35,6 +35,9 @@ class PerfilController extends Controller
             $admin = $request->safe()->only(Perfil::CAMPOS_ADMIN);
             $admin['credito'] = (int) ($admin['credito'] ?? 0);
             $dados += $admin;
+            $perfilAtual = $alvo->perfil;
+            $dados['vinculo_manual'] = filled($admin['vinculo_usp'] ?? null)
+                && ($admin['vinculo_usp'] !== $perfilAtual?->vinculo_usp || (bool) $perfilAtual?->vinculo_manual);
         }
 
         if ($alvo->local) {

@@ -13,7 +13,27 @@ class VinculoUsp
         'ALUNOCONVENIOINT' => 'Aluno de Convênio Internacional',
         'ESTAGIARIORH' => 'Estagiário',
         'SERVIDOR' => 'Servidor',
+        'ALUMNI' => 'Alumni',
     ];
+
+    /**
+     * Códigos de vínculo (tipoVinculo) retornados pela Senha Única, sem duplicatas.
+     *
+     * @return string[]
+     */
+    public static function codigos(iterable $vinculos): array
+    {
+        $codigos = [];
+
+        foreach ($vinculos as $v) {
+            if (($v['tipvinext'] ?? null) === 'Servidor Designado' || empty($v['tipoVinculo'])) {
+                continue;
+            }
+            $codigos[mb_strtoupper($v['tipoVinculo'])] = true;
+        }
+
+        return array_keys($codigos);
+    }
 
     /**
      * Resume os vínculos retornados pela Senha Única em rótulos de vínculo e de unidade.

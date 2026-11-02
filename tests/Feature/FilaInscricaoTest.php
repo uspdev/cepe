@@ -146,11 +146,11 @@ class FilaInscricaoTest extends TestCase
 
         $this->ocuparVaga(); // ocupa tax_ex
         $a = $this->usuario(); // credenciado: elegível a tax_ex e tax_alumni
-        Perfil::where('user_id', $a->id)->update(['vinculo_usp' => 'Alumni']);
+        Perfil::where('user_id', $a->id)->update(['vinculo_usp' => 'Alumni', 'vinculos_usp' => ['ALUMNI']]);
 
         // ocupa também tax_alumni para esgotar todos os buckets
         $b = $this->usuario();
-        Perfil::where('user_id', $b->id)->update(['vinculo_usp' => 'Alumni']);
+        Perfil::where('user_id', $b->id)->update(['vinculo_usp' => 'Alumni', 'vinculos_usp' => ['ALUMNI']]);
         $this->actingAs($b)->post("/inscricoes/{$this->turma->id}", array_merge($this->payload(), ['perfil' => 'tax_alumni']))
             ->assertSessionHasNoErrors();
 
@@ -228,7 +228,7 @@ class FilaInscricaoTest extends TestCase
 
         $a = $this->usuario(); // entra na fila de tax_ex
         $b = $this->usuario(); // credenciado: entra na fila de tax_alumni
-        Perfil::where('user_id', $b->id)->update(['vinculo_usp' => 'Alumni']);
+        Perfil::where('user_id', $b->id)->update(['vinculo_usp' => 'Alumni', 'vinculos_usp' => ['ALUMNI']]);
 
         $this->entrarNaFila($a);
         $this->entrarNaFila($b, 'tax_alumni');

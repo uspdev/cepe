@@ -28,13 +28,5 @@ return new class extends Migration
             $table->index(['turma_id', 'perfil', 'status']);
         });
     }
-
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('filas');
-    }
 };
 

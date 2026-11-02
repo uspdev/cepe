@@ -32,6 +32,12 @@ class Oferecimento extends Model
         });
     }
 
+    /** Oferecimento marcado como "Gratuito ou sem Pagamento On-Line": taxa zerada para todos os perfis. */
+    public function gratuito(): bool
+    {
+        return in_array('gratuito', $this->formas_pagamento) || ($this->attributes['pagamento'] ?? null) === 'gratuito';
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

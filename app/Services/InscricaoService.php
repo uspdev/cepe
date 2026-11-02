@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Fila;
 use App\Models\Matricula;
 use App\Models\Oferecimento;
+use App\Models\Perfil;
 use App\Models\Turma;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -37,8 +38,17 @@ class InscricaoService
             ->unique();
 
         $configurados = $turma->vagas->pluck('perfil')->unique();
+        $excluidos = $turma->configuracaoVagas()['excluir_perfis'] ?? [];
+        $periodoInscricao = $this->periodoInscricaoAtual($turma->oferecimento);
+        $gratuito = $turma->oferecimento->gratuito();
 
-        return $permitidos->intersect($configurados)->values()->all();
+        // perfis sem taxa definida não são ofertados (exceto PAPFE e oferecimento gratuito), como no legado
+        return $permitidos
+            ->reject(fn ($perfil) => in_array($perfil, $excluidos))
+            ->filter(fn ($perfil) => $configurados->contains($turma->bucketDoPerfil($perfil)))
+            ->filter(fn ($perfil) => $gratuito || $perfil === 'tax_papfe' || $turma->taxaDoPerfil($perfil, $periodoInscricao))
+            ->values()
+            ->all();
     }
 
     /**
@@ -54,20 +64,24 @@ class InscricaoService
             return $turma->vagas->sum('quantidade') - $ativas->count() - $filaAFrente;
         }
 
-        return $turma->vagasDoPerfil($perfil) - $ativas->where('perfil', $perfil)->count() - $filaAFrente;
+        $perfisDoBucket = $turma->perfisDoBucket($turma->bucketDoPerfil($perfil));
+
+        return $turma->vagasDoPerfil($perfil) - $ativas->whereIn('perfil', $perfisDoBucket)->count() - $filaAFrente;
     }
 
     /** Se o usuário pode se inscrever com o perfil informado. */
     public function elegivel(string $perfil, User $user): bool
     {
         $perfilUsuario = $user->perfilOuNovo();
-        $credenciado = filled($perfilUsuario->numero_cepeusp) || filled($perfilUsuario->vinculo_usp);
 
         return match ($perfil) {
             'tax_ex' => true,
             'tax_ter' => ($perfilUsuario->idade ?? 0) >= 60,
             'tax_cepe' => filled($perfilUsuario->numero_cepeusp),
-            default => $credenciado,
+            'tax_alumni' => $perfilUsuario->temVinculo('ALUMNI'),
+            'tax_child' => $perfilUsuario->categoriaCepeusp() === 'dependente',
+            'tax_con' => $perfilUsuario->categoriaCepeusp() === 'conveniado',
+            default => $perfilUsuario->temVinculoUsp(),
         };
     }
 
@@ -94,12 +108,19 @@ class InscricaoService
 
             $opcoes[$perfil] = [
                 'label' => config('cepe.perfil.' . $perfil, $perfil),
-                'valor' => $turma->taxaDoPerfil($perfil, $periodoInscricao)?->valor,
                 'vagas' => $vagas,
-            ];
+            ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
         }
 
         return $opcoes;
+    }
+
+    /** Valor final e detalhamento (base, descontos, crédito) exibidos ao usuário. */
+    private function dadosPreco(Turma $turma, User $user, string $perfil, int $periodoInscricao): array
+    {
+        $preco = app(PrecoService::class)->calcular($turma, $user, $perfil, $periodoInscricao);
+
+        return ['valor' => $preco['final'], 'preco' => $preco];
     }
 
     /**
@@ -208,8 +229,7 @@ class InscricaoService
 
             $opcoes[$perfil] = [
                 'label' => config('cepe.perfil.' . $perfil, $perfil),
-                'valor' => $turma->taxaDoPerfil($perfil, $periodoInscricao)?->valor,
-            ];
+            ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
         }
 
         return $opcoes;
@@ -235,14 +255,32 @@ class InscricaoService
             }
 
             $oferecimento = $turma->oferecimento;
+            $periodoInscricao = $this->periodoInscricaoAtual($oferecimento);
+
+            // trava o perfil para serializar o uso de crédito e recalcula o preço no servidor
+            $perfilUsuario = Perfil::where('user_id', $user->id)->lockForUpdate()->first();
+            $user->setRelation('perfil', $perfilUsuario);
+            $preco = app(PrecoService::class)->calcular($turma, $user, $perfil, $periodoInscricao);
+
             $matricula = Matricula::create([
                 'user_id' => $user->id,
                 'perfil' => $perfil,
                 'turma_id' => $turma->id,
-                'periodo_inscricao' => $this->periodoInscricaoAtual($oferecimento),
+                'periodo_inscricao' => $periodoInscricao,
                 'periodo_oferecimento' => $oferecimento->periodo,
                 'status' => Matricula::MATRICULADA,
+                'valor_base' => $preco['base'],
+                'desconto' => $preco['desconto'],
+                'valor' => $preco['final'],
+                'credito_usado' => $preco['credito_usado'],
             ]);
+
+            if ($preco['credito_usado'] != 0) {
+                $perfilUsuario->update(['credito' => max(0, $perfilUsuario->credito - $preco['credito_usado'])]);
+            }
+            if ($preco['vinculo']) {
+                $metadados['vinculo_desconto'] = $preco['vinculo'];
+            }
 
             foreach ($metadados as $chave => $valor) {
                 if ($valor !== null && $valor !== '') {
@@ -323,7 +361,8 @@ class InscricaoService
 
         if (! $this->segundoPeriodoAberto($turma->oferecimento)) {
             $perfil ??= $fila?->perfil;
-            $query->where(fn ($q) => $q->where('perfil', $perfil)->orWhereNull('perfil'));
+            $perfis = $turma->perfisDoBucket($turma->bucketDoPerfil((string) $perfil));
+            $query->where(fn ($q) => $q->whereIn('perfil', $perfis)->orWhereNull('perfil'));
         }
 
         return $query->count();
@@ -350,9 +389,8 @@ class InscricaoService
             if ($vagas > 0) {
                 $opcoes[$perfil] = [
                     'label' => config('cepe.perfil.' . $perfil, $perfil),
-                    'valor' => $turma->taxaDoPerfil($perfil, $periodoInscricao)?->valor,
                     'vagas' => $vagas,
-                ];
+                ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
             }
         }
 

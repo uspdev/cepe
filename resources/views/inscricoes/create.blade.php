@@ -57,9 +57,7 @@
                                                 <input class="form-check-input" type="radio" name="perfil" id="fila_perfil_{{ $perfil }}" value="{{ $perfil }}" {{ old('perfil') === $perfil ? 'checked' : '' }} required>
                                                 <label class="form-check-label" for="fila_perfil_{{ $perfil }}">
                                                     {{ $dados['label'] }}
-                                                    @if($dados['valor'] !== null)
-                                                        — R$ {{ number_format($dados['valor'], 2, ',', '.') }}
-                                                    @endif
+                                                    @include('inscricoes.partials.preco', ['dados' => $dados])
                                                 </label>
                                             </div>
                                         @endforeach
@@ -68,9 +66,7 @@
                                         <input type="hidden" name="perfil" value="{{ key($perfisElegiveis) }}">
                                         <p class="mb-0">
                                             {{ $dados['label'] }}
-                                            @if($dados['valor'] !== null)
-                                                — R$ {{ number_format($dados['valor'], 2, ',', '.') }}
-                                            @endif
+                                            @include('inscricoes.partials.preco', ['dados' => $dados])
                                         </p>
                                     @endif
                                 </div>
@@ -129,16 +125,19 @@
                             @if($minhaFila?->perfil)
                                 {{-- Perfil travado no escolhido ao entrar na fila --}}
                                 <input type="hidden" name="perfil" value="{{ $minhaFila->perfil }}">
-                                <p class="mb-0">{{ config('cepe.perfil.' . $minhaFila->perfil, $minhaFila->perfil) }}</p>
+                                <p class="mb-0">
+                                    {{ config('cepe.perfil.' . $minhaFila->perfil, $minhaFila->perfil) }}
+                                    @isset($perfisElegiveis[$minhaFila->perfil])
+                                        @include('inscricoes.partials.preco', ['dados' => $perfisElegiveis[$minhaFila->perfil]])
+                                    @endisset
+                                </p>
                             @elseif(count($perfisLivres) === 1)
                                 {{-- Único perfil disponível: exibe fixo, sem escolha --}}
                                 @php($dados = reset($perfisLivres))
                                 <input type="hidden" name="perfil" value="{{ key($perfisLivres) }}">
                                 <p class="mb-0">
                                     {{ $dados['label'] }}
-                                    @if($dados['valor'] !== null)
-                                        — R$ {{ number_format($dados['valor'], 2, ',', '.') }}
-                                    @endif
+                                    @include('inscricoes.partials.preco', ['dados' => $dados])
                                 </p>
                             @else
                                 @foreach($perfisLivres as $perfil => $dados)
@@ -146,9 +145,7 @@
                                         <input class="form-check-input" type="radio" name="perfil" id="perfil_{{ $perfil }}" value="{{ $perfil }}" {{ old('perfil') === $perfil ? 'checked' : '' }} required>
                                         <label class="form-check-label" for="perfil_{{ $perfil }}">
                                             {{ $dados['label'] }}
-                                            @if($dados['valor'] !== null)
-                                                — R$ {{ number_format($dados['valor'], 2, ',', '.') }}
-                                            @endif
+                                            @include('inscricoes.partials.preco', ['dados' => $dados])
                                             <span class="text-muted small">({{ $dados['vagas'] }} {{ $dados['vagas'] > 1 ? 'vagas' : 'vaga' }})</span>
                                         </label>
                                     </div>

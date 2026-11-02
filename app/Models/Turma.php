@@ -65,17 +65,42 @@ class Turma extends Model
         return $this->matriculas()->ativas();
     }
 
-    public function vagasDoPerfil(string $perfil): int
+    /** Bucket de vagas do perfil: o próprio, se a turma tem vagas para ele; senão o do fallback. */
+    public function bucketDoPerfil(string $perfil): string
     {
-        return (int) $this->vagas->where('perfil', $perfil)->sum('quantidade');
+        if ($this->vagas->contains('perfil', $perfil)) {
+            return $perfil;
+        }
+
+        return config('cepe.vaga_fallback.' . $perfil, $perfil);
     }
 
-    public function taxaDoPerfil(string $perfil, int $periodoInscricao): ?TaxaTurma
+    /** Perfis que disputam as vagas de um bucket. */
+    public function perfisDoBucket(string $bucket): array
     {
-        return $this->taxas
-            ->where('perfil', $perfil)
+        return array_values(array_filter(
+            array_keys(config('cepe.perfil')),
+            fn ($perfil) => $this->bucketDoPerfil($perfil) === $bucket
+        ));
+    }
+
+    public function vagasDoPerfil(string $perfil): int
+    {
+        return (int) $this->vagas->where('perfil', $this->bucketDoPerfil($perfil))->sum('quantidade');
+    }
+
+    /** Taxa do perfil (ou de um vínculo específico); o fallback de perfil vale só para a taxa geral. */
+    public function taxaDoPerfil(string $perfil, int $periodoInscricao, string $vinculo = ''): ?TaxaTurma
+    {
+        $buscar = fn (string $p) => $this->taxas
+            ->where('perfil', $p)
             ->where('periodo_inscricao', $periodoInscricao)
+            ->where('vinculo', $vinculo)
             ->first();
+
+        $fallback = config('cepe.taxa_fallback.' . $perfil);
+
+        return $buscar($perfil) ?? ($fallback ? $buscar($fallback) : null);
     }
 
     public function getDiasSemanaFormatadosAttribute(): string

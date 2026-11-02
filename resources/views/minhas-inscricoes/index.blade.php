@@ -19,6 +19,7 @@
                             <th>Turma</th>
                             <th>Período</th>
                             <th>Perfil</th>
+                            <th>Valor</th>
                             <th>Status</th>
                             <th class="text-end">Ação</th>
                         </tr>
@@ -39,6 +40,16 @@
                                 </td>
                                 <td>{{ $matricula->periodo_oferecimento }}</td>
                                 <td>{{ $matricula->perfil_nome }}</td>
+                                <td class="small">
+                                    @if($matricula->valor !== null)
+                                        R$ {{ number_format($matricula->valor, 2, ',', '.') }}
+                                        @if($matricula->credito_usado != 0)
+                                            <br><span class="text-muted">crédito {{ $matricula->credito_usado > 0 ? 'usado' : 'gerado' }}: R$ {{ number_format(abs($matricula->credito_usado), 2, ',', '.') }}</span>
+                                        @endif
+                                    @else
+                                        —
+                                    @endif
+                                </td>
                                 <td>
                                     <span class="badge {{ $matricula->status === 'matriculada' ? 'bg-success' : 'bg-secondary' }}">
                                         {{ $matricula->status_nome }}
@@ -56,7 +67,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="text-center py-4 text-muted">Você ainda não possui inscrições.</td>
+                                <td colspan="7" class="text-center py-4 text-muted">Você ainda não possui inscrições.</td>
                             </tr>
                         @endforelse
                     </tbody>

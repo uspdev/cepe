@@ -14,7 +14,37 @@ return [
         'tax_ter' => 'Terceira Idade',
         'tax_cepe' => 'CEPEUSP',
         'tax_child' => 'Dependente',
+        'tax_con' => 'Conveniado',
     ],
+    // perfis sem vagas próprias na turma usam o bucket do perfil indicado
+    'vaga_fallback' => [
+        'tax_child' => 'tax_in',
+        'tax_con' => 'tax_in',
+    ],
+    // perfis sem taxa própria na turma usam a taxa do perfil indicado
+    'taxa_fallback' => [
+        'tax_con' => 'tax_in',
+    ],
+    // vínculos da Senha Única que dão direito aos perfis USP (tax_in e tax_papfe); ALUMNI tem perfil próprio
+    'vinculos_usp_permitidos' => [
+        'ALUNOCOTEL', 'ALUNOEA', 'ALUNOEAD', 'ALUNOESPGR', 'ALUNOGR', 'ALUNOPD', 'ALUNOPOS',
+        'DOCENTE', 'PESQUISADORCOLAB', 'PROVISITANTERNAC', 'PROFVISITANTE', 'SERVIDOR',
+    ],
+    // taxas específicas por vínculo USP (código da Senha Única), configuráveis na turma; só para os tipos de atividade listados
+    'taxa_vinculo' => [
+        'tipos' => ['voltausp'],
+        'perfis' => ['tax_in'],
+        'vinculos' => [
+            'ALUNOGR' => 'Aluno de Graduação',
+        ],
+    ],
+    // cursos: desconto a partir do segundo curso no mesmo período
+    'desconto_segundo_curso' => [
+        'percentuais' => ['tax_child' => 0.5, 'tax_ter' => 0.5, 'tax_ex' => 0.2],
+        'minimo' => 5,
+    ],
+    // valor mínimo cobrado quando o crédito não cobre toda a taxa
+    'taxa_minima' => 5,
     'tipos_inscricao' => [
         'mensal' => 'Curso Mensal',
         'bimestral' => 'Curso Bimestral',
@@ -34,12 +64,12 @@ return [
         'curso' => 'Período do Curso',
     ],
     'periodo_perfis' => [
-        'usp' => ['tax_in'],
+        'usp' => ['tax_in', 'tax_child', 'tax_con'],
         'papfe' => ['tax_papfe'],
         'cepeusp' => ['tax_cepe'],
         'alumni' => ['tax_alumni'],
         'externa' => ['tax_ex'],
-        'segundo' => ['tax_in', 'tax_papfe', 'tax_ex', 'tax_alumni', 'tax_cepe', 'tax_ter', 'tax_child'],
+        'segundo' => ['tax_in', 'tax_papfe', 'tax_ex', 'tax_alumni', 'tax_cepe', 'tax_ter', 'tax_child', 'tax_con'],
         'curso' => [],
     ],
     'status_matricula' => [
@@ -77,12 +107,14 @@ return [
             'tamanhos' => 'voltausp',
             'reservadas' => true,
             'ano_nascimento' => false,
+            'excluir_perfis' => ['tax_child', 'tax_con'],
         ],
         'voltinhausp' => [
             'perfis' => ['tax_in'],
             'tamanhos' => 'voltinhausp',
             'reservadas' => true,
             'ano_nascimento' => true,
+            'excluir_perfis' => ['tax_child', 'tax_con'],
         ],
     ],
     'atestados' => [

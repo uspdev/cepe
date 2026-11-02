@@ -12,6 +12,27 @@ class TurmaRequest extends FormRequest
         return true;
     }
 
+    /** Taxa por vínculo exige a taxa geral do mesmo perfil e período. */
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            $preenchida = fn ($taxa) => isset($taxa['valor']) && $taxa['valor'] !== '';
+            $taxas = array_filter((array) $this->input('taxas', []), 'is_array');
+
+            $gerais = collect($taxas)
+                ->filter(fn ($taxa) => $preenchida($taxa) && empty($taxa['vinculo']))
+                ->map(fn ($taxa) => ($taxa['perfil'] ?? '') . '|' . ($taxa['periodo_inscricao'] ?? ''))
+                ->all();
+
+            foreach ($taxas as $chave => $taxa) {
+                $semGeral = ! in_array(($taxa['perfil'] ?? '') . '|' . ($taxa['periodo_inscricao'] ?? ''), $gerais, true);
+                if ($preenchida($taxa) && ! empty($taxa['vinculo']) && $semGeral) {
+                    $validator->errors()->add("taxas.{$chave}.valor", 'Informe a taxa geral do perfil e do período antes da taxa por vínculo.');
+                }
+            }
+        });
+    }
+
     public function rules(){
         $rules = [
             'oferecimento_id' => 'required|exists:oferecimentos,id',
@@ -40,8 +61,9 @@ class TurmaRequest extends FormRequest
             'taxas' => 'nullable|array',
             'taxas.*.perfil' => 'required_with:taxas.*.valor|in:' . implode(',', array_keys(config('cepe.perfil'))),
             'taxas.*.periodo_inscricao' => 'required_with:taxas.*.valor|in:1,2',
-            'taxas.*.valor' => 'nullable|numeric|min:0',
-            'taxas.*' => 'array:perfil,periodo_inscricao,valor',
+            'taxas.*.valor' => 'nullable|integer|min:0',
+            'taxas.*.vinculo' => 'nullable|in:' . implode(',', array_keys(config('cepe.taxa_vinculo.vinculos'))),
+            'taxas.*' => 'array:perfil,periodo_inscricao,valor,vinculo',
             'info_contato' => 'nullable|string',
             'declaracao' => 'nullable|string',
         ];

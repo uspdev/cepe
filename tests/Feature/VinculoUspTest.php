@@ -55,17 +55,46 @@ class VinculoUspTest extends TestCase
         $this->assertSame(1, Perfil::count());
     }
 
-    public function test_preserva_dados_do_perfil_e_ignora_vinculo_vazio(): void
+    public function test_preserva_dados_do_perfil_e_revalida_vinculo_vazio(): void
     {
         $user = User::factory()->create(['codpes' => 123]);
-        Perfil::create(['user_id' => $user->id, 'cidade' => 'São Paulo', 'vinculo_usp' => 'Antigo']);
+        Perfil::create(['user_id' => $user->id, 'cidade' => 'São Paulo', 'vinculo_usp' => 'Antigo', 'vinculos_usp' => ['ALUNOGR']]);
 
         $this->logar($user, []);
-        $this->assertSame('Antigo', $user->fresh()->perfil->vinculo_usp);
+        $perfil = $user->fresh()->perfil;
+        $this->assertNull($perfil->vinculo_usp);
+        $this->assertSame([], $perfil->vinculos_usp);
+        $this->assertSame('São Paulo', $perfil->cidade);
 
         $this->logar($user, $this->vinculos());
         $perfil = $user->fresh()->perfil;
         $this->assertSame('São Paulo', $perfil->cidade);
         $this->assertStringContainsString('Docente', $perfil->vinculo_usp);
+        $this->assertEqualsCanonicalizing(['SERVIDOR', 'ALUNOPOS', 'ALUNOGR'], $perfil->vinculos_usp);
+    }
+
+    public function test_vinculo_definido_por_admin_nao_e_apagado_no_login(): void
+    {
+        $user = User::factory()->create(['codpes' => 123]);
+        Perfil::create(['user_id' => $user->id, 'vinculo_usp' => 'Docente aposentado', 'vinculo_manual' => true, 'vinculos_usp' => ['ALUNOGR', 'ALUMNI']]);
+
+        // sem vínculo na Senha Única: o rótulo manual fica, mas os códigos (descontos/alumni) são zerados
+        $this->logar($user, []);
+        $perfil = $user->fresh()->perfil;
+        $this->assertSame('Docente aposentado', $perfil->vinculo_usp);
+        $this->assertSame([], $perfil->vinculos_usp);
+        $this->assertFalse($perfil->temVinculo('ALUMNI'));
+
+        $this->logar($user, [['tipoVinculo' => 'ALUNOGR']]);
+        $perfil = $user->fresh()->perfil;
+        $this->assertSame('Docente aposentado', $perfil->vinculo_usp);
+        $this->assertSame(['ALUNOGR'], $perfil->vinculos_usp);
+    }
+
+    public function test_codigos_dos_vinculos(): void
+    {
+        $this->assertEqualsCanonicalizing(['SERVIDOR', 'ALUNOPOS', 'ALUNOGR'], VinculoUsp::codigos($this->vinculos()));
+        $this->assertSame(['ALUMNI'], VinculoUsp::codigos([['tipoVinculo' => 'alumni']]));
+        $this->assertSame('Alumni', VinculoUsp::resumir([['tipoVinculo' => 'ALUMNI']])['vinculo']);
     }
 }

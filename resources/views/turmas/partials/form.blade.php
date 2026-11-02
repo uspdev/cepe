@@ -25,12 +25,16 @@
         'quinta' => 'Qui', 'sexta' => 'Sex', 'sabado' => 'Sáb', 'domingo' => 'Dom',
     ];
 
-    $taxasSalvas = $turma?->taxas->keyBy(fn($taxa) => "{$taxa->perfil}-{$taxa->periodo_inscricao}") ?? collect();
-    $valorTaxa = function ($perfil, $periodo) use ($ativo, $taxasSalvas) {
-        $key = "{$perfil}-{$periodo}";
+    $taxasSalvas = $turma?->taxas->keyBy(fn($taxa) => "{$taxa->perfil}-{$taxa->periodo_inscricao}-{$taxa->vinculo}") ?? collect();
+    $valorTaxa = function ($perfil, $periodo, $vinculo = '') use ($ativo, $taxasSalvas) {
+        $key = "{$perfil}-{$periodo}-{$vinculo}";
         $atual = $taxasSalvas->get($key)?->valor;
-        return $ativo ? old("taxas.{$perfil}.{$periodo}.valor", $atual) : $atual;
+        $index = "{$perfil}_{$periodo}" . ($vinculo === '' ? '' : "_{$vinculo}");
+        return $ativo ? old("taxas.{$index}.valor", $atual) : $atual;
     };
+
+    $tipoAtividade = $turma?->exists ? $turma->oferecimento?->atividade?->tipo : (isset($oferecimento) ? $oferecimento->atividade?->tipo : null);
+    $taxaPorVinculo = in_array($tipoAtividade, config('cepe.taxa_vinculo.tipos'));
 
     $configVagas = $turma?->exists
         ? $turma->configuracaoVagas()
@@ -196,10 +200,25 @@
                 <input type="hidden" name="taxas[{{ $taxaIndex }}][perfil]" value="{{ $perfil }}">
                 <input type="hidden" name="taxas[{{ $taxaIndex }}][periodo_inscricao]" value="{{ $periodo }}">
                 <label for="{{ $formKey }}-taxa_{{ $perfil }}_{{ $periodo }}">{{ $label }}</label>
-                <input type="number" class="form-control{{ $invalido('taxas.' . $taxaIndex . '.valor') }}" id="{{ $formKey }}-taxa_{{ $perfil }}_{{ $periodo }}" name="taxas[{{ $taxaIndex }}][valor]" min="0" step="0.01" value="{{ $valorTaxa($perfil, $periodo) }}">
+                <input type="number" class="form-control{{ $invalido('taxas.' . $taxaIndex . '.valor') }}" id="{{ $formKey }}-taxa_{{ $perfil }}_{{ $periodo }}" name="taxas[{{ $taxaIndex }}][valor]" min="0" step="1" value="{{ $valorTaxa($perfil, $periodo) }}" @if(config('cepe.taxa_fallback.' . $perfil)) placeholder="= {{ config('cepe.perfil.' . config('cepe.taxa_fallback.' . $perfil)) }}" @endif>
             </div>
         @endforeach
     </div>
+
+    @foreach($taxaPorVinculo ? config('cepe.taxa_vinculo.perfis') : [] as $perfilVinculo)
+        <div class="form-row">
+            @foreach(config('cepe.taxa_vinculo.vinculos') as $codigo => $rotuloVinculo)
+                @php $taxaIndex = "{$perfilVinculo}_{$periodo}_{$codigo}"; @endphp
+                <div class="form-group col-md-3">
+                    <input type="hidden" name="taxas[{{ $taxaIndex }}][perfil]" value="{{ $perfilVinculo }}">
+                    <input type="hidden" name="taxas[{{ $taxaIndex }}][periodo_inscricao]" value="{{ $periodo }}">
+                    <input type="hidden" name="taxas[{{ $taxaIndex }}][vinculo]" value="{{ $codigo }}">
+                    <label for="{{ $formKey }}-taxa_{{ $taxaIndex }}">{{ config('cepe.perfil.' . $perfilVinculo) }} — {{ $rotuloVinculo }}</label>
+                    <input type="number" class="form-control{{ $invalido('taxas.' . $taxaIndex . '.valor') }}" id="{{ $formKey }}-taxa_{{ $taxaIndex }}" name="taxas[{{ $taxaIndex }}][valor]" min="0" step="1" value="{{ $valorTaxa($perfilVinculo, $periodo, $codigo) }}" placeholder="taxa geral">
+                </div>
+            @endforeach
+        </div>
+    @endforeach
 @endforeach
 
 <div class="form-group">

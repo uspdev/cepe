@@ -17,17 +17,11 @@ return new class extends Migration
             $table->string('perfil'); // Ex: tax_in, tax_ex, tax_papfe, tax_alumni, tax_cepe
             $table->integer('valor');
             $table->integer('periodo_inscricao'); // 1º ou 2º período de inscrição
+            $table->string('vinculo')->default(''); // vazio = taxa geral do perfil
             $table->timestamps();
 
-            $table->unique(['turma_id', 'perfil', 'periodo_inscricao']);
+            $table->unique(['turma_id', 'perfil', 'periodo_inscricao', 'vinculo']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
-    public function down(): void
-    {
-        Schema::dropIfExists('taxas_turma');
-    }
 };

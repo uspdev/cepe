@@ -17,13 +17,18 @@ class Perfil extends Model
 
     public const CAMPOS_ADMIN = ['numero_cepeusp', 'credito', 'vinculo_usp', 'unidade_usp'];
 
-    protected $fillable = ['user_id', ...self::CAMPOS_USUARIO, ...self::CAMPOS_ADMIN];
+    /** Preenchidos pelo sistema (Senha Única / admin), não pelo usuário. */
+    public const CAMPOS_SISTEMA = ['vinculos_usp', 'vinculo_manual'];
+
+    protected $fillable = ['user_id', ...self::CAMPOS_USUARIO, ...self::CAMPOS_ADMIN, ...self::CAMPOS_SISTEMA];
 
     protected $casts = [
         'data_nascimento' => 'date',
         'sem_cpf' => 'boolean',
         'sem_rg' => 'boolean',
         'credito' => 'integer',
+        'vinculos_usp' => 'array',
+        'vinculo_manual' => 'boolean',
     ];
 
     /** Rótulos dos campos obrigatórios, na ordem de exibição. */
@@ -50,6 +55,35 @@ class Perfil extends Model
     public function getIdadeAttribute(): ?int
     {
         return $this->data_nascimento?->age;
+    }
+
+    public function temVinculo(string $codigo): bool
+    {
+        return in_array(mb_strtoupper($codigo), $this->vinculos_usp ?? [], true);
+    }
+
+    /** Vínculo USP real (lista de `cepe.vinculos_usp_permitidos`). Perfis ainda não sincronizados caem no rótulo legado. */
+    public function temVinculoUsp(): bool
+    {
+        if ($this->vinculo_manual) {
+            return filled($this->vinculo_usp);
+        }
+
+        if ($this->vinculos_usp === null) {
+            return filled($this->vinculo_usp) && $this->vinculo_usp !== 'Alumni';
+        }
+
+        return array_intersect($this->vinculos_usp, config('cepe.vinculos_usp_permitidos')) !== [];
+    }
+
+    /** 'dependente' (9063/9263), 'conveniado' (9163) ou null, pelo prefixo do número CEPEUSP. */
+    public function categoriaCepeusp(): ?string
+    {
+        return match (substr((string) $this->numero_cepeusp, 0, 4)) {
+            '9063', '9263' => 'dependente',
+            '9163' => 'conveniado',
+            default => null,
+        };
     }
 
     /** true/false conforme a idade esteja na faixa do PAR-Q; null quando a data de nascimento é desconhecida. */

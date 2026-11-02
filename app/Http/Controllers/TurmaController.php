@@ -124,14 +124,20 @@ class TurmaController extends Controller
 
     private function syncTaxas(Turma $turma, array $taxas): void
     {
+        $permiteVinculo = in_array($turma->load('oferecimento.atividade')->oferecimento?->atividade?->tipo, config('cepe.taxa_vinculo.tipos'));
+
         $taxas_id = [];
         foreach ($taxas as $taxa) {
-            if (empty($taxa['valor']) || !is_numeric($taxa['valor'])) {
+            if (!$permiteVinculo && !empty($taxa['vinculo'])) {
+                continue;
+            }
+            if (!isset($taxa['valor']) || $taxa['valor'] === '' || !is_numeric($taxa['valor'])) {
                 continue;
             }
             $model = $turma->taxas()->updateOrCreate([
                 'perfil' => $taxa['perfil'],
                 'periodo_inscricao' => $taxa['periodo_inscricao'],
+                'vinculo' => $taxa['vinculo'] ?? '',
             ], [
                 'valor' => $taxa['valor'],
             ]);

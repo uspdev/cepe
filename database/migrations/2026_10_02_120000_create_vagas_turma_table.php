@@ -48,23 +48,4 @@ return new class extends Migration
             $table->unsignedSmallInteger('ano_nascimento_maximo')->nullable();
         });
     }
-
-    public function down(): void
-    {
-        Schema::table('turmas', function (Blueprint $table) {
-            $table->dropColumn(['ano_nascimento_minimo', 'ano_nascimento_maximo']);
-            foreach (array_keys($this->legado) as $coluna) {
-                $table->integer($coluna)->nullable();
-            }
-        });
-
-        foreach ($this->legado as $coluna => $perfil) {
-            $vagas = DB::table('vagas_turma')->where('perfil', $perfil)->where('tamanho', '')->get();
-            foreach ($vagas as $vaga) {
-                DB::table('turmas')->where('id', $vaga->turma_id)->update([$coluna => $vaga->quantidade]);
-            }
-        }
-
-        Schema::dropIfExists('vagas_turma');
-    }
 };

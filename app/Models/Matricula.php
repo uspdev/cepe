@@ -19,6 +19,10 @@ class Matricula extends Model
         'periodo_inscricao',
         'periodo_oferecimento',
         'status',
+        'valor_base',
+        'desconto',
+        'valor',
+        'credito_usado',
     ];
 
     public function user()

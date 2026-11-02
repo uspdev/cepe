@@ -13,6 +13,7 @@ class TaxaTurma extends Model
         'perfil',
         'valor',
         'periodo_inscricao',
+        'vinculo',
     ];
 
     public function turma()

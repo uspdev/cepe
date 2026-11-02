@@ -48,11 +48,9 @@ return new class extends Migration
             $table->unsignedInteger('credito')->default(0); // reais inteiros
             $table->string('vinculo_usp')->nullable();
             $table->string('unidade_usp')->nullable();
-        });
-    }
 
-    public function down(): void
-    {
-        Schema::dropIfExists('perfis');
+            $table->json('vinculos_usp')->nullable(); // códigos brutos da Senha Única; null = ainda não sincronizado
+            $table->boolean('vinculo_manual')->default(false);
+        });
     }
 };

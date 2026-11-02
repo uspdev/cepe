@@ -35,10 +35,4 @@ return new class extends Migration
             $table->dateTime('aceito_em')->nullable();
         });
     }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('parq_respostas');
-        Schema::dropIfExists('atestados');
-    }
 };
