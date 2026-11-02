@@ -12,12 +12,10 @@ use Illuminate\Support\Facades\Gate;
 class TurmaController extends Controller
 {
     public function index(Request $request){
-        Gate::authorize('admin');
-        if($request->has('search')){
-            $turmas = Turma::where('oferecimento_id','like','%'.$request->search.'%')->get();
-        } else {
-            $turmas = Turma::all();
-        }
+        Gate::authorize('viewAny', Turma::class);
+        $turmas = Turma::whereHas('oferecimento.atividade', fn ($q) => $q->whereIn('tipo', $request->user()->tiposPermitidos()))
+            ->when($request->has('search'), fn ($q) => $q->where('oferecimento_id', 'like', '%'.$request->search.'%'))
+            ->get();
 
         return view('turmas.index',[
             'turmas' => $turmas
@@ -25,14 +23,14 @@ class TurmaController extends Controller
     }
 
     public function create(){
-        Gate::authorize('admin');
+        Gate::authorize('viewAny', Turma::class);
         return view('turmas.create',[
-            'oferecimentos' => Oferecimento::all()
+            'oferecimentos' => $this->oferecimentosPermitidos()
         ]);
     }
 
     public function store(TurmaRequest $request){
-        Gate::authorize('admin');
+        Gate::authorize('create', [Turma::class, Oferecimento::findOrFail($request->oferecimento_id)]);
         $turma = new Turma;
         $dados = $request->validated();
         unset($dados['taxas'], $dados['vagas']);
@@ -45,22 +43,23 @@ class TurmaController extends Controller
     }
 
     public function show(Turma $turma){
-        Gate::authorize('admin');
+        Gate::authorize('view', $turma);
         return view('turmas.show',[
             'turma' => $turma
         ]);
     }
 
     public function edit(Turma $turma){
-        Gate::authorize('admin');
+        Gate::authorize('update', $turma);
         return view('turmas.edit',[
             'turma' => $turma,
-            'oferecimentos' => Oferecimento::all()
+            'oferecimentos' => $this->oferecimentosPermitidos()
         ]);
     }
 
     public function update(TurmaRequest $request, Turma $turma){
-        Gate::authorize('admin');
+        Gate::authorize('update', $turma);
+        Gate::authorize('create', [Turma::class, Oferecimento::findOrFail($request->oferecimento_id)]);
         $dados = $request->validated();
         unset($dados['taxas'], $dados['vagas']);
         $turma->fill($dados);
@@ -73,10 +72,15 @@ class TurmaController extends Controller
 
     public function destroy(Turma $turma)
     {
-        Gate::authorize('admin');
+        Gate::authorize('delete', $turma);
         $oferecimento = $turma->oferecimento;
         $turma->delete();
         return $this->voltarParaOferecimento($turma, $oferecimento);
+    }
+
+    private function oferecimentosPermitidos()
+    {
+        return Oferecimento::whereHas('atividade', fn ($q) => $q->whereIn('tipo', auth()->user()->tiposPermitidos()))->get();
     }
 
     /**

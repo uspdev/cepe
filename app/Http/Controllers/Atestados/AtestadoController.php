@@ -14,7 +14,8 @@ class AtestadoController extends Controller
     private function consulta(Request $request)
     {
         $status = $request->has('status') ? $request->query('status') : 'em_analise';
-        $query = Atestado::with('user')->latest();
+        $query = Atestado::with('user')->latest()
+            ->whereIn('tipo', $request->user()->tiposAtestadoAnalisaveis());
 
         $hoje = now()->toDateString();
 
@@ -46,14 +47,14 @@ class AtestadoController extends Controller
 
     public function index(Request $request)
     {
-        Gate::authorize('admin');
+        Gate::authorize('viewAny', Atestado::class);
 
         return view('atestados.index', ['atestados' => $this->consulta($request)->paginate(50)->withQueryString()]);
     }
 
     public function show(Atestado $atestado)
     {
-        Gate::authorize('admin');
+        Gate::authorize('analisar', $atestado);
         $atestado->load('user', 'parq', 'analisador');
 
         return view('atestados.show', ['atestado' => $atestado]);
@@ -61,7 +62,7 @@ class AtestadoController extends Controller
 
     public function analise(AnaliseAtestadoRequest $request, Atestado $atestado)
     {
-        Gate::authorize('admin');
+        Gate::authorize('analisar', $atestado);
         $dados = $request->validated();
         $aprovado = $dados['status'] === 'aprovado';
 
@@ -87,7 +88,7 @@ class AtestadoController extends Controller
 
     public function exportar(Request $request)
     {
-        Gate::authorize('admin');
+        Gate::authorize('viewAny', Atestado::class);
         $atestados = $this->consulta($request)->get();
 
         return response()->streamDownload(function () use ($atestados) {
@@ -102,7 +103,7 @@ class AtestadoController extends Controller
 
     public function destroy(Atestado $atestado)
     {
-        Gate::authorize('admin');
+        Gate::authorize('analisar', $atestado);
         if ($atestado->arquivo) {
             Storage::disk('local')->delete($atestado->arquivo);
         }

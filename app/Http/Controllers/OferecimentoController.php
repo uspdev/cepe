@@ -13,12 +13,10 @@ class OferecimentoController extends Controller
 {
     public function index(Request $request)
     {
-        Gate::authorize('admin');
-        if ($request->has('search')) {
-            $oferecimentos = Oferecimento::where('atividade_id', 'like', '%' . $request->search . '%')->get();
-        } else {
-            $oferecimentos = Oferecimento::all();
-        }
+        Gate::authorize('viewAny', Oferecimento::class);
+        $oferecimentos = Oferecimento::whereHas('atividade', fn ($q) => $q->whereIn('tipo', $request->user()->tiposPermitidos()))
+            ->when($request->has('search'), fn ($q) => $q->where('atividade_id', 'like', '%' . $request->search . '%'))
+            ->get();
 
         return view('oferecimentos.index', [
             'oferecimentos' => $oferecimentos
@@ -27,7 +25,7 @@ class OferecimentoController extends Controller
 
     public function create(Atividade $atividade)
     {
-        Gate::authorize('admin');
+        Gate::authorize('create', [Oferecimento::class, $atividade]);
         return view(
             'oferecimentos.create',
             [
@@ -38,7 +36,7 @@ class OferecimentoController extends Controller
 
     public function store(OferecimentoRequest $request)
     {
-        Gate::authorize('admin');
+        Gate::authorize('create', [Oferecimento::class, Atividade::findOrFail($request->atividade_id)]);
         // 1. Cria e salva o Oferecimento
         $oferecimento = new Oferecimento;
         $oferecimento->atividade_id = $request->atividade_id;
@@ -69,7 +67,7 @@ class OferecimentoController extends Controller
 
     public function show(Atividade $atividade, Oferecimento $oferecimento)
     {
-        Gate::authorize('admin');
+        Gate::authorize('view', $oferecimento);
         $oferecimento->load('turmas.taxas');
         return view('oferecimentos.show', [
             'atividade' => $atividade,
@@ -79,7 +77,7 @@ class OferecimentoController extends Controller
 
     public function edit(Atividade $atividade, Oferecimento $oferecimento)
     {
-        Gate::authorize('admin');
+        Gate::authorize('update', $oferecimento);
         return view('oferecimentos.edit', [
             'atividade' => $atividade,
             'oferecimento' => $oferecimento
@@ -88,7 +86,8 @@ class OferecimentoController extends Controller
 
     public function update(OferecimentoRequest $request, Atividade $atividade, Oferecimento $oferecimento)
     {
-        Gate::authorize('admin');
+        Gate::authorize('update', $oferecimento);
+        Gate::authorize('create', [Oferecimento::class, Atividade::findOrFail($request->atividade_id)]);
 
         $oferecimento->atividade_id = $request->atividade_id;
         $oferecimento->pagamento = serialize($request->formas_pagamento);
@@ -121,7 +120,7 @@ class OferecimentoController extends Controller
 
     public function destroy(Atividade $atividade, Oferecimento $oferecimento)
     {
-        Gate::authorize('admin');
+        Gate::authorize('delete', $oferecimento);
         $oferecimento->delete();
         return redirect("/atividades/{$atividade->id}");
     }

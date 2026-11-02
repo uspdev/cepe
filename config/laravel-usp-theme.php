@@ -38,13 +38,13 @@ $menu = [
     [
         'text' => 'Atividades',
         'submenu' => $atividades,
-        'can' => 'admin',
+        'can' => 'gerenciar-catalogo',
     ],
     [
         'text' => 'Atestados',
         'submenu' => [
             ['text' => 'Meus atestados', 'url' => config('app.url').'/meus-atestados', 'can' => 'user'],
-            ['text' => 'Atestados', 'url' => config('app.url').'/atestados', 'can' => 'admin'],
+            ['text' => 'Atestados', 'url' => config('app.url').'/atestados', 'can' => 'analisar-atestados'],
         ],
         'can' => 'user',
     ],

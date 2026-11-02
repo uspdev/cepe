@@ -9,7 +9,7 @@ class TurmaRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return $this->user() !== null;
     }
 
     /** Taxa por vínculo exige a taxa geral do mesmo perfil e período. */

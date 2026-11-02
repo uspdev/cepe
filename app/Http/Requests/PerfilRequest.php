@@ -64,13 +64,13 @@ class PerfilRequest extends FormRequest
             $rules[$campo] = 'nullable|max:255';
         }
 
-        if ($alvo->local) {
+        if ($alvo->local && ($alvo->is($this->user()) || Gate::allows('admin'))) {
             $rules['name'] = 'required|max:255';
             $rules['email'] = ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($alvo->id)];
             $rules['password'] = ['nullable', 'confirmed', Password::min(8)->letters()->mixedCase()->numbers()];
         }
 
-        if (Gate::allows('admin')) {
+        if (Gate::allows('perfis.gerenciar')) {
             $rules['numero_cepeusp'] = 'nullable|digits_between:1,20';
             $rules['credito'] = 'nullable|integer|min:0';
             $rules['vinculo_usp'] = 'nullable|max:255';

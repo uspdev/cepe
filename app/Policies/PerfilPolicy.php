@@ -9,6 +9,6 @@ class PerfilPolicy
 {
     public function update(User $ator, User $alvo): bool
     {
-        return $ator->is($alvo) || Gate::forUser($ator)->allows('admin');
+        return $ator->is($alvo) || Gate::forUser($ator)->allows('perfis.gerenciar');
     }
 }

@@ -6,7 +6,8 @@
     $valor = fn ($campo) => old($campo, $perfil->{$campo});
     $nasc = old('data_nascimento', $perfil->data_nascimento?->format('d/m/Y'));
     $action = $proprio ? '/perfil' : "/usuarios/{$alvo->id}/perfil";
-    $admin = \Illuminate\Support\Facades\Gate::allows('admin');
+    $admin = \Illuminate\Support\Facades\Gate::allows('perfis.gerenciar');
+    $contaLocalEditavel = $alvo->local && ($proprio || \Illuminate\Support\Facades\Gate::allows('admin'));
     $semCpf = (bool) old('sem_cpf', $perfil->sem_cpf);
     $semRg = (bool) old('sem_rg', $perfil->sem_rg);
 @endphp
@@ -44,7 +45,7 @@
                 </div>
 
                 <h6 class="text-secondary font-weight-bold">Dados de acesso</h6>
-                @if($alvo->local)
+                @if($contaLocalEditavel)
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="name">Nome completo</label>

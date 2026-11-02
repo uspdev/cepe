@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Matricula;
 use App\Models\Perfil;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class MinhasInscricoesController extends Controller
 {
@@ -20,7 +21,7 @@ class MinhasInscricoesController extends Controller
 
     public function cancelar(Matricula $matricula)
     {
-        abort_if($matricula->user_id !== auth()->id(), 403);
+        Gate::authorize('cancel', $matricula);
         abort_if($matricula->status !== Matricula::MATRICULADA, 422);
 
         DB::transaction(function () use ($matricula) {

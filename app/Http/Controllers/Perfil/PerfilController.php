@@ -31,7 +31,7 @@ class PerfilController extends Controller
         if ($dados['sem_rg']) {
             $dados['rg'] = null;
         }
-        if (Gate::allows('admin')) {
+        if (Gate::allows('perfis.gerenciar')) {
             $admin = $request->safe()->only(Perfil::CAMPOS_ADMIN);
             $admin['credito'] = (int) ($admin['credito'] ?? 0);
             $dados += $admin;
@@ -40,7 +40,8 @@ class PerfilController extends Controller
                 && ($admin['vinculo_usp'] !== $perfilAtual?->vinculo_usp || (bool) $perfilAtual?->vinculo_manual);
         }
 
-        if ($alvo->local) {
+        // credenciais de conta local só o próprio usuário ou o admin alteram (o sru gerencia dados do perfil, não senhas)
+        if ($alvo->local && ($alvo->is(auth()->user()) || Gate::allows('admin'))) {
             $alvo->name = $request->validated('name');
             $alvo->email = $request->validated('email');
             if ($request->filled('password')) {

@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Gate;
 class AtividadeController extends Controller
 {
     public function index(Request $request){
-        Gate::authorize('admin');
+        Gate::authorize('viewAny', Atividade::class);
         $atividades = Atividade::where('status', '!=', 'excluido')
+            ->whereIn('tipo', $request->user()->tiposPermitidos())
             ->when($request->filled('search'), fn($q) => $q->where(fn($w) =>
                 $w->where('nome', 'like', "%{$request->search}%")
                   ->orWhere('descricao', 'like', "%{$request->search}%")))
@@ -25,12 +26,12 @@ class AtividadeController extends Controller
     }
 
     public function create(){
-        Gate::authorize('admin');
+        Gate::authorize('create', Atividade::class);
         return view('atividades.create');
     }
 
     public function store(AtividadeRequest $request){
-        Gate::authorize('admin');
+        Gate::authorize('create', Atividade::class);
         $atividade = new Atividade;
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
@@ -44,21 +45,21 @@ class AtividadeController extends Controller
     }
 
     public function show(Atividade $atividade){
-        Gate::authorize('admin');
+        Gate::authorize('view', $atividade);
         return view('atividades.show',[
             'atividade' => $atividade
         ]);
     }
 
     public function edit(Atividade $atividade){
-        Gate::authorize('admin');
+        Gate::authorize('update', $atividade);
         return view('atividades.edit',[
             'atividade' => $atividade
         ]);
     }
 
     public function update(AtividadeRequest $request, Atividade $atividade){
-        Gate::authorize('admin');
+        Gate::authorize('update', $atividade);
         $atividade->nome = $request->nome;
         $atividade->descricao = $request->descricao;
         $atividade->tipo = $request->tipo;
@@ -72,7 +73,7 @@ class AtividadeController extends Controller
 
     public function destroy(Atividade $atividade)
     {
-        Gate::authorize('admin');
+        Gate::authorize('delete', $atividade);
         $atividade->update(['status' => 'excluido']);
         session()->flash('alert-success', 'Atividade excluída com sucesso.');
         return redirect('/atividades');

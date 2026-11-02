@@ -78,7 +78,31 @@ return [
     ],
     'grupos_catalogo' => [
         'cursos' => ['mensal', 'bimestral', 'trimestral', 'semestral'],
-        'eventos' => ['eventos', 'voltausp', 'voltinha'],
+        'eventos' => ['eventos', 'voltausp', 'voltinhausp'],
+    ],
+    // permissions da aplicação (guard web); `grupo.*` delimita os grupos de `grupos_catalogo` em que o papel atua
+    'permissoes' => [
+        'atividades.gerenciar',
+        'inscricoes.gerenciar',
+        'atestados.analisar',
+        'atestados.dermatologico',
+        'perfis.gerenciar',
+        'grupo.cursos',
+        'grupo.eventos',
+    ],
+    // roles da aplicação (guard web) e suas permissions; sincronizadas por `php artisan cepe:papeis`
+    'papeis' => [
+        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'inscricoes.gerenciar', 'grupo.cursos', 'grupo.eventos'],
+        'gestor-cursos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.cursos'],
+        'gestor-eventos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.eventos'],
+        'avaliador-dermatologico' => ['atestados.dermatologico'],
+        'professor' => [],
+    ],
+    // permission necessária para analisar cada tipo de documento (`atestados.tipos`)
+    'atestados_permissoes' => [
+        'atestado_medico' => 'atestados.analisar',
+        'parq' => 'atestados.analisar',
+        'exame_dermatologico' => 'atestados.dermatologico',
     ],
     'limite_cursos' => [
         'primeiro' => 1,

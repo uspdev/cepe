@@ -24,7 +24,10 @@ return new class extends Migration
             $table->json('dias_semana')->nullable();
             $table->time('horario_inicio')->nullable();
             $table->time('horario_fim')->nullable();
-            $table->string('professor')->nullable();
+            
+            $table->unsignedBigInteger('professor')->nullable();
+            $table->foreign('professor')->references('id')->on('users')->nullOnDelete();
+            
             $table->integer('idade_minima')->nullable();
             $table->integer('idade_maxima')->nullable();
             $table->string('nivel')->nullable();
