@@ -42,7 +42,11 @@ class TurmaRequest extends FormRequest
             'dias_semana.*' => 'in:segunda,terca,quarta,quinta,sexta,sabado,domingo',
             'horario_inicio' => 'nullable|date_format:H:i',
             'horario_fim' => 'nullable|date_format:H:i',
-            'professor' => 'nullable|string|max:255',
+            'professor_id' => ['nullable', 'integer', function ($attribute, $value, $fail) {
+                if ($value && ! \App\Models\User::professores()->whereKey($value)->exists()) {
+                    $fail('Selecione um professor cadastrado.');
+                }
+            }],
             'idade_minima' => 'nullable|integer|min:1',
             'idade_maxima' => 'nullable|integer|min:1|gte:idade_minima',
             'nivel' => 'nullable|string|max:255',

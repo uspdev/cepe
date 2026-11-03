@@ -35,4 +35,15 @@ class TurmaPolicy
     {
         return $user->gerencia(self::PERMISSAO, $turma->oferecimento?->atividade?->tipo);
     }
+
+    public function frequencia(User $user, Turma $turma): bool
+    {
+        if ($turma->professor_id === $user->id) {
+            return true;
+        }
+
+        $tipo = $turma->oferecimento?->atividade?->tipo;
+
+        return in_array($tipo, config('cepe.grupos_catalogo.cursos')) && $user->gerencia('frequencia.gerenciar', $tipo);
+    }
 }

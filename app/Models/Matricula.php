@@ -40,6 +40,11 @@ class Matricula extends Model
         return $this->hasMany(MatriculaMetadado::class);
     }
 
+    public function presencas()
+    {
+        return $this->hasMany(Presenca::class);
+    }
+
     /** Matrículas que ocupam vaga: qualquer status exceto cancelada. */
     public function scopeAtivas($query)
     {

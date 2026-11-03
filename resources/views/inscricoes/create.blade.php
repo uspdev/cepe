@@ -14,7 +14,7 @@
             <div class="mb-4">
                 <label class="form-label text-muted fw-bold font-weight-bold">Turma</label>
                 <ul class="list-unstyled small mb-0">
-                    @if($turma->professor)<li><strong>Professor:</strong> {{ $turma->professor }}</li>@endif
+                    @if($turma->professor)<li><strong>Professor:</strong> {{ $turma->professor->name }}</li>@endif
                     @if($turma->dias_semana_formatados)<li><strong>Dias:</strong> {{ $turma->dias_semana_formatados }}</li>@endif
                     <li><strong>Horário:</strong> {{ $turma->horario_formatado }}</li>
                     @if($turma->local)<li><strong>Local:</strong> {{ $turma->local }}</li>@endif

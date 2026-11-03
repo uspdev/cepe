@@ -33,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
         // Gates de menu e contexto
         Gate::define('gerenciar-catalogo', fn (User $user) => $user->gerencia('atividades.gerenciar'));
         Gate::define('analisar-atestados', fn (User $user) => $user->tiposAtestadoAnalisaveis() !== []);
+        Gate::define('professor-turmas', fn (User $user) => $user->turmasComoProfessor()->exists());
 
         // Aluno = usuário sem nenhum papel da aplicação. Serve ao menu/contexto; o acesso aos
         // dados (matrículas, presença) segue policies de dono, para que equipe também possa se inscrever.

@@ -36,6 +36,16 @@ $menu = [
         'can' => 'user',
     ],
     [
+        'text' => 'Minha frequência',
+        'url' => config('app.url').'/minha-frequencia',
+        'can' => 'user',
+    ],
+    [
+        'text' => 'Minhas turmas',
+        'url' => config('app.url').'/minhas-turmas',
+        'can' => 'professor-turmas',
+    ],
+    [
         'text' => 'Atividades',
         'submenu' => $atividades,
         'can' => 'gerenciar-catalogo',

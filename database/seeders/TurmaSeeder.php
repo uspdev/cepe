@@ -373,9 +373,10 @@ Trazer um Pack de Bolas para os jogos nos dias dos jogos.', 'vagas' => ['tax_in'
             foreach ($lista as $dados) {
                 $vagas = $dados['vagas'] ?? [];
                 $taxas = $dados['taxas'] ?? [];
-                unset($dados['vagas'], $dados['taxas']);
+                $professorId = ProfessorSeeder::idPorNome($dados['professor'] ?? null);
+                unset($dados['vagas'], $dados['taxas'], $dados['professor']);
 
-                $turma = Turma::create(['oferecimento_id' => $oferecimentoId] + $dados);
+                $turma = Turma::create(['oferecimento_id' => $oferecimentoId, 'professor_id' => $professorId] + $dados);
 
                 foreach ($vagas as $perfil => $valor) {
                     foreach (is_array($valor) ? $valor : ['' => $valor] as $tamanho => $quantidade) {

@@ -136,7 +136,7 @@
                     @php
                         $abrir = old('form_key') === 'turma-' . $turma->id;
                         $resumo = collect([
-                            $turma->professor,
+                            $turma->professor?->name,
                             collect((array) $turma->dias_semana)->map(fn($d) => ucfirst($d))->implode(', ') ?: null,
                             $turma->horario_inicio ? substr($turma->horario_inicio, 0, 5) . ' - ' . substr((string) $turma->horario_fim, 0, 5) : null,
                         ])->filter()->implode(' | ');

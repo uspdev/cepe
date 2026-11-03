@@ -37,7 +37,7 @@ class CatalogoController extends Controller
         abort_if($atividade->status !== 'ativo', 404);
 
         $oferecimento = Oferecimento::vigentePara($atividade);
-        $oferecimento?->loadMissing(['periodos', 'turmas.vagas', 'turmas.taxas', 'turmas.matriculas']);
+        $oferecimento?->loadMissing(['periodos', 'turmas.vagas', 'turmas.taxas', 'turmas.matriculas', 'turmas.professor']);
 
         return view('catalogo.show', [
             'atividade' => $atividade,

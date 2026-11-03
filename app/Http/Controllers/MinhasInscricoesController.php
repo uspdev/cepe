@@ -4,19 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Matricula;
 use App\Models\Perfil;
+use App\Services\FrequenciaService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class MinhasInscricoesController extends Controller
 {
-    public function index()
+    public function index(FrequenciaService $frequencia)
     {
         $matriculas = auth()->user()->matriculas()
-            ->with(['turma.oferecimento.atividade', 'metadados'])
+            ->with(['turma.oferecimento.atividade', 'turma.professor', 'metadados', 'presencas'])
             ->latest()
             ->get();
 
-        return view('minhas-inscricoes.index', ['matriculas' => $matriculas]);
+        return view('minhas-inscricoes.index', [
+            'matriculas' => $matriculas,
+            'frequencia' => $frequencia,
+        ]);
     }
 
     public function cancelar(Matricula $matricula)

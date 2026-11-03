@@ -33,7 +33,7 @@
                                 <td class="small">
                                     @if($turma)
                                         {{ $turma->dias_semana_formatados }} {{ $turma->horario_formatado }}
-                                        @if($turma->professor)<br><span class="text-muted">{{ $turma->professor }}</span>@endif
+                                        @if($turma->professor)<br><span class="text-muted">{{ $turma->professor->name }}</span>@endif
                                     @else
                                         —
                                     @endif
@@ -54,8 +54,22 @@
                                     <span class="badge {{ $matricula->status === 'matriculada' ? 'bg-success' : 'bg-secondary' }}">
                                         {{ $matricula->status_nome }}
                                     </span>
+                                    @if($matricula->presencas->isNotEmpty())
+                                        <div class="small text-muted mt-1">
+                                            Presenças: {{ $matricula->presencas->where('status', \App\Models\Presenca::PRESENTE)->count() }}
+                                            · Faltas: {{ $matricula->presencas->where('status', \App\Models\Presenca::FALTA)->count() }}
+                                        </div>
+                                    @endif
                                 </td>
                                 <td class="text-end">
+                                    @can('checkin', $matricula)
+                                        @if($frequencia->janelaAberta($turma))
+                                            <form method="POST" action="{{ route('minhas-inscricoes.presenca', $matricula) }}" class="d-inline">
+                                                @csrf
+                                                <button type="submit" class="btn btn-sm btn-outline-success">Marcar presença</button>
+                                            </form>
+                                        @endif
+                                    @endcan
                                     @if($matricula->status === 'matriculada')
                                         <form method="POST" action="{{ route('minhas-inscricoes.cancelar', $matricula) }}" class="d-inline">
                                             @csrf

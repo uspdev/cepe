@@ -33,6 +33,8 @@
         return $ativo ? old("taxas.{$index}.valor", $atual) : $atual;
     };
 
+    $professores = \App\Models\User::professores()->orderBy('name')->get();
+
     $tipoAtividade = $turma?->exists ? $turma->oferecimento?->atividade?->tipo : (isset($oferecimento) ? $oferecimento->atividade?->tipo : null);
     $taxaPorVinculo = in_array($tipoAtividade, config('cepe.taxa_vinculo.tipos'));
 
@@ -113,8 +115,13 @@
 </div>
 
 <div class="form-group">
-    <label for="{{ $formKey }}-professor">Professor(a)</label>
-    <input type="text" class="form-control{{ $invalido('professor') }}" id="{{ $formKey }}-professor" name="professor" value="{{ $valor('professor') }}">
+    <label for="{{ $formKey }}-professor_id">Professor(a)</label>
+    <select class="form-control{{ $invalido('professor_id') }}" id="{{ $formKey }}-professor_id" name="professor_id">
+        <option value="">Selecione</option>
+        @foreach($professores as $professor)
+            <option value="{{ $professor->id }}" {{ $valor('professor_id') == $professor->id ? 'selected' : '' }}>{{ $professor->name }}</option>
+        @endforeach
+    </select>
 </div>
 
 <div class="form-row">

@@ -91,6 +91,16 @@ class User extends Authenticatable
         return $this->hasMany(Fila::class);
     }
 
+    public function turmasComoProfessor()
+    {
+        return $this->hasMany(Turma::class, 'professor_id');
+    }
+
+    public function scopeProfessores($query)
+    {
+        return $query->whereHas('roles', fn ($q) => $q->where('name', 'professor'));
+    }
+
     /**
      * Get the attributes that should be cast.
      *

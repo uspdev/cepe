@@ -15,7 +15,7 @@ class InscricaoController extends Controller
 
     public function create(Turma $turma)
     {
-        $turma->loadMissing(['oferecimento.atividade', 'oferecimento.periodos', 'vagas', 'taxas']);
+        $turma->loadMissing(['oferecimento.atividade', 'oferecimento.periodos', 'vagas', 'taxas', 'professor']);
 
         $user = auth()->user();
         $erros = $this->inscricoes->validar($turma, $user);

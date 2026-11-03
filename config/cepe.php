@@ -76,6 +76,12 @@ return [
         'matriculada' => 'Matriculada',
         'cancelada' => 'Cancelada',
     ],
+    'status_presenca' => [
+        'presente' => 'Presente',
+        'falta' => 'Falta',
+        'justificada' => 'Justificada',
+    ],
+    'fuso_frequencia' => 'America/Sao_Paulo',
     'grupos_catalogo' => [
         'cursos' => ['mensal', 'bimestral', 'trimestral', 'semestral'],
         'eventos' => ['eventos', 'voltausp', 'voltinhausp'],
@@ -84,6 +90,7 @@ return [
     'permissoes' => [
         'atividades.gerenciar',
         'inscricoes.gerenciar',
+        'frequencia.gerenciar',
         'atestados.analisar',
         'atestados.dermatologico',
         'perfis.gerenciar',
@@ -92,8 +99,8 @@ return [
     ],
     // roles da aplicação (guard web) e suas permissions; sincronizadas por `php artisan cepe:papeis`
     'papeis' => [
-        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'inscricoes.gerenciar', 'grupo.cursos', 'grupo.eventos'],
-        'gestor-cursos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.cursos'],
+        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos', 'grupo.eventos'],
+        'gestor-cursos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos'],
         'gestor-eventos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.eventos'],
         'avaliador-dermatologico' => ['atestados.dermatologico'],
         'professor' => [],

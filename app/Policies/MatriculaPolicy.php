@@ -13,4 +13,11 @@ class MatriculaPolicy
         return $matricula->user_id === $user->id
             || $user->gerencia('inscricoes.gerenciar', $matricula->turma?->oferecimento?->atividade?->tipo);
     }
+
+    public function checkin(User $user, Matricula $matricula): bool
+    {
+        return $matricula->user_id === $user->id
+            && $matricula->status === Matricula::MATRICULADA
+            && $matricula->turma !== null;
+    }
 }

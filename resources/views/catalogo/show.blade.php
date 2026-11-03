@@ -38,7 +38,7 @@
                     <div class="card-body d-flex flex-column">
                         <h3 class="h6 text-primary">Turma {{ $i + 1 }}</h3>
                         <ul class="list-unstyled small mb-3 flex-grow-1">
-                            @if($turma->professor)<li><strong>Professor:</strong> {{ $turma->professor }}</li>@endif
+                            @if($turma->professor)<li><strong>Professor:</strong> {{ $turma->professor->name }}</li>@endif
                             @if($turma->dias_semana_formatados)<li><strong>Dias:</strong> {{ $turma->dias_semana_formatados }}</li>@endif
                             <li><strong>Horário:</strong> {{ $turma->horario_formatado }}</li>
                             @if($turma->idade_minima || $turma->idade_maxima)

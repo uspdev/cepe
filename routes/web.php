@@ -10,6 +10,7 @@ use App\Http\Controllers\Atestados\MeusAtestadosController;
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\FilaController;
+use App\Http\Controllers\FrequenciaController;
 use App\Http\Controllers\InscricaoController;
 use App\Http\Controllers\MinhasInscricoesController;
 
@@ -60,6 +61,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/inscricoes/{turma}/fila/status', [FilaController::class, 'status'])->name('filas.status');
     Route::get('/minhas-inscricoes', [MinhasInscricoesController::class, 'index'])->name('minhas-inscricoes.index');
     Route::patch('/minhas-inscricoes/{matricula}/cancelar', [MinhasInscricoesController::class, 'cancelar'])->name('minhas-inscricoes.cancelar');
+    Route::post('/minhas-inscricoes/{matricula}/presenca', [FrequenciaController::class, 'checkin'])->name('minhas-inscricoes.presenca');
+    Route::get('/minha-frequencia', [FrequenciaController::class, 'minhaFrequencia'])->name('minha-frequencia.index');
+
+    Route::get('/minhas-turmas', [FrequenciaController::class, 'minhasTurmas'])->name('minhas-turmas.index');
+    Route::get('/turmas/{turma}/frequencia', [FrequenciaController::class, 'index'])->name('frequencia.index');
+    Route::get('/turmas/{turma}/frequencia/hoje', [FrequenciaController::class, 'hoje'])->name('frequencia.hoje');
+    Route::get('/turmas/{turma}/frequencia/{chamada}', [FrequenciaController::class, 'show'])->name('frequencia.show');
+    Route::patch('/turmas/{turma}/frequencia/{chamada}', [FrequenciaController::class, 'update'])->name('frequencia.update');
+    Route::patch('/turmas/{turma}/frequencia/{chamada}/data', [FrequenciaController::class, 'alterarData'])->name('frequencia.data');
 });
 
 

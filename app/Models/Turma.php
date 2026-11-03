@@ -13,7 +13,7 @@ class Turma extends Model
         'dias_semana',
         'horario_inicio',
         'horario_fim',
-        'professor',
+        'professor_id',
         'idade_minima',
         'idade_maxima',
         'nivel',
@@ -35,9 +35,19 @@ class Turma extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function professor()
+    {
+        return $this->belongsTo(User::class, 'professor_id');
+    }
+
     public function oferecimento()
     {
         return $this->belongsTo(Oferecimento::class);
+    }
+
+    public function chamadas()
+    {
+        return $this->hasMany(Chamada::class);
     }
 
     public function matriculas()
