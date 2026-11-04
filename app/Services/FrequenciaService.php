@@ -18,9 +18,11 @@ class FrequenciaService
             return false;
         }
 
-        $hora = $agora->format('H:i');
+        $tolerancia = (int) config('cepe.tolerancia_checkin', 0);
+        $inicio = $agora->copy()->setTimeFromTimeString(substr($turma->horario_inicio, 0, 5))->subMinutes($tolerancia);
+        $fim = $agora->copy()->setTimeFromTimeString(substr($turma->horario_fim, 0, 5))->addMinutes($tolerancia);
 
-        return $hora >= substr($turma->horario_inicio, 0, 5) && $hora <= substr($turma->horario_fim, 0, 5);
+        return $agora->copy()->startOfMinute()->between($inicio, $fim);
     }
 
     public function chamadaDeHoje(Turma $turma, ?int $userId = null): Chamada

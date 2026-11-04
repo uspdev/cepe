@@ -82,6 +82,7 @@ return [
         'justificada' => 'Justificada',
     ],
     'fuso_frequencia' => 'America/Sao_Paulo',
+    'tolerancia_checkin' => 60,
     'grupos_catalogo' => [
         'cursos' => ['mensal', 'bimestral', 'trimestral', 'semestral'],
         'eventos' => ['eventos', 'voltausp', 'voltinhausp'],

@@ -135,13 +135,31 @@ class FrequenciaTest extends TestCase
         $aluno = $this->usuario();
         $matricula = $this->matricula($turma, $aluno);
 
-        Carbon::setTestNow(Carbon::parse('2026-10-27 13:00:00', 'America/Sao_Paulo'));
+        Carbon::setTestNow(Carbon::parse('2026-10-27 13:01:00', 'America/Sao_Paulo'));
+        $this->actingAs($aluno)->post("/minhas-inscricoes/{$matricula->id}/presenca")->assertSessionHas('alert-danger');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-27 06:59:00', 'America/Sao_Paulo'));
         $this->actingAs($aluno)->post("/minhas-inscricoes/{$matricula->id}/presenca")->assertSessionHas('alert-danger');
 
         Carbon::setTestNow(Carbon::parse('2026-10-26 10:00:00', 'America/Sao_Paulo'));
         $this->actingAs($aluno)->post("/minhas-inscricoes/{$matricula->id}/presenca")->assertSessionHas('alert-danger');
 
         $this->assertSame(0, Presenca::count());
+    }
+
+    public function test_checkin_aceita_tolerancia_antes_e_depois_da_aula(): void
+    {
+        $turma = $this->turma('semestral');
+        $aluno = $this->usuario();
+        $matricula = $this->matricula($turma, $aluno);
+
+        Carbon::setTestNow(Carbon::parse('2026-10-27 07:00:00', 'America/Sao_Paulo'));
+        $this->actingAs($aluno)->post("/minhas-inscricoes/{$matricula->id}/presenca")->assertSessionHas('alert-success');
+
+        Carbon::setTestNow(Carbon::parse('2026-10-29 13:00:00', 'America/Sao_Paulo'));
+        $this->actingAs($aluno)->post("/minhas-inscricoes/{$matricula->id}/presenca")->assertSessionHas('alert-success');
+
+        $this->assertSame(2, Presenca::count());
     }
 
     public function test_aluno_registra_e_visualiza_sua_frequencia(): void
