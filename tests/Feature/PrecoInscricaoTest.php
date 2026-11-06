@@ -66,6 +66,19 @@ class PrecoInscricaoTest extends TestCase
         return $user;
     }
 
+    /** Usuário com carteira de conveniado vigente (paga). */
+    private function conveniado(): User
+    {
+        $usuario = $this->usuario();
+        \App\Models\Carteira::create([
+            'solicitante_id' => $usuario->id, 'user_id' => $usuario->id, 'categoria' => 'conveniado',
+            'nome' => $usuario->name, 'status' => 'ativa', 'numero' => '91631234',
+            'validade_inicio' => now()->toDateString(), 'validade_fim' => now()->addYear()->toDateString(),
+        ]);
+
+        return $usuario;
+    }
+
     private function preco(Turma $turma, User $user, string $perfil = 'tax_in'): array
     {
         return app(PrecoService::class)->calcular($turma->fresh(['taxas', 'oferecimento.atividade']), $user->fresh(), $perfil, 1);
@@ -121,7 +134,7 @@ class PrecoInscricaoTest extends TestCase
 
     public function test_tax_con_herda_a_taxa_de_tax_in(): void
     {
-        $this->assertSame(50, $this->preco($this->turma(), $this->usuario(['numero_cepeusp' => '91631234']), 'tax_con')['final']);
+        $this->assertSame(50, $this->preco($this->turma(), $this->conveniado(), 'tax_con')['final']);
     }
 
     public function test_papfe_e_gratuito_em_cursos_mas_nao_em_eventos(): void
@@ -162,7 +175,7 @@ class PrecoInscricaoTest extends TestCase
     {
         $evento = $this->turma('eventos', ['tax_child' => 100]);
         $curso = $this->turma('semestral', ['tax_ex' => 100]);
-        $usuario = $this->usuario(['numero_cepeusp' => '91631234']);
+        $usuario = $this->conveniado();
         $this->matricular($usuario, $this->turma('semestral'));
 
         $this->assertSame(100, $this->preco($evento, $usuario, 'tax_child')['final']);

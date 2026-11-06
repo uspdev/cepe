@@ -46,6 +46,19 @@ class ElegibilidadePerfilTest extends TestCase
         return $user;
     }
 
+    /** Usuário com carteira CEPEUSP vigente (paga) da categoria informada. */
+    private function usuarioComCarteira(string $categoria = 'dependente_servidor'): User
+    {
+        $user = $this->usuario();
+        \App\Models\Carteira::create([
+            'solicitante_id' => $user->id, 'user_id' => $user->id, 'categoria' => $categoria,
+            'nome' => $user->name, 'status' => 'ativa', 'numero' => '90631234',
+            'validade_inicio' => now()->toDateString(), 'validade_fim' => now()->addYear()->toDateString(),
+        ]);
+
+        return $user;
+    }
+
     private function elegiveis(Turma $turma, User $user): array
     {
         return array_keys(app(InscricaoService::class)->perfisElegiveis($turma->fresh(['oferecimento.periodos', 'vagas', 'taxas']), $user->fresh()));
@@ -56,7 +69,6 @@ class ElegibilidadePerfilTest extends TestCase
         $turma = $this->turma();
 
         $this->assertSame([], $this->elegiveis($turma, $this->usuario()));
-        $this->assertSame([], $this->elegiveis($turma, $this->usuario(['numero_cepeusp' => '123456'])));
         $this->assertSame(['tax_in'], $this->elegiveis($turma, $this->usuario(['vinculos_usp' => ['ALUNOGR']])));
     }
 
@@ -72,8 +84,8 @@ class ElegibilidadePerfilTest extends TestCase
     public function test_perfil_sem_taxa_definida_nao_e_ofertado(): void
     {
         $semTaxa = $this->turma('semestral', ['usp'], ['tax_in' => 1], ['tax_in']);
-        $dependente = $this->usuario(['numero_cepeusp' => '90631234']);
-        $conveniado = $this->usuario(['numero_cepeusp' => '91631234']);
+        $dependente = $this->usuarioComCarteira('dependente_servidor');
+        $conveniado = $this->usuarioComCarteira('conveniado');
 
         $this->assertSame([], $this->elegiveis($semTaxa, $dependente));
         $this->assertSame(['tax_con'], $this->elegiveis($semTaxa, $conveniado)); // herda a taxa de tax_in
@@ -85,7 +97,7 @@ class ElegibilidadePerfilTest extends TestCase
     public function test_oferecimento_gratuito_oferta_perfis_sem_taxa(): void
     {
         $turma = $this->turma('semestral', ['usp'], ['tax_in' => 1], []);
-        $dependente = $this->usuario(['numero_cepeusp' => '90631234']);
+        $dependente = $this->usuarioComCarteira('dependente_servidor');
 
         $this->assertSame([], $this->elegiveis($turma, $dependente));
 
@@ -109,28 +121,29 @@ class ElegibilidadePerfilTest extends TestCase
         $this->assertSame([], $this->elegiveis($turma, $this->usuario(['vinculo_usp' => 'Alumni'])));
     }
 
-    public function test_dependente_e_conveniado_por_prefixo_do_numero_cepeusp(): void
+    public function test_dependente_e_conveniado_pela_categoria_da_carteira(): void
     {
         $turma = $this->turma();
 
-        $this->assertSame(['tax_child'], $this->elegiveis($turma, $this->usuario(['numero_cepeusp' => '90631234'])));
-        $this->assertSame(['tax_child'], $this->elegiveis($turma, $this->usuario(['numero_cepeusp' => '92631234'])));
-        $this->assertSame(['tax_con'], $this->elegiveis($turma, $this->usuario(['numero_cepeusp' => '91631234'])));
+        $this->assertSame(['tax_child'], $this->elegiveis($turma, $this->usuarioComCarteira('dependente_servidor')));
+        $this->assertSame(['tax_child'], $this->elegiveis($turma, $this->usuarioComCarteira('dependente_aluno')));
+        $this->assertSame(['tax_con'], $this->elegiveis($turma, $this->usuarioComCarteira('conveniado')));
+        $this->assertSame([], $this->elegiveis($turma, $this->usuarioComCarteira('aposentado')));
     }
 
     public function test_child_e_con_nao_sao_ofertados_no_voltausp(): void
     {
         $turma = $this->turma('voltausp');
 
-        $this->assertSame([], $this->elegiveis($turma, $this->usuario(['numero_cepeusp' => '91631234'])));
+        $this->assertSame([], $this->elegiveis($turma, $this->usuarioComCarteira('conveniado')));
     }
 
     public function test_child_e_con_dividem_o_pool_de_vagas_de_tax_in(): void
     {
         $turma = $this->turma();
         $servico = app(InscricaoService::class);
-        $dependente = $this->usuario(['numero_cepeusp' => '90631234']);
-        $conveniado = $this->usuario(['numero_cepeusp' => '91631234']);
+        $dependente = $this->usuarioComCarteira('dependente_servidor');
+        $conveniado = $this->usuarioComCarteira('conveniado');
 
         $this->assertSame(1, $servico->vagasDisponiveis($turma->fresh(['vagas', 'matriculas', 'oferecimento.periodos']), 'tax_con'));
 

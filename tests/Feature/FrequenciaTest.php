@@ -25,6 +25,7 @@ class FrequenciaTest extends TestCase
         parent::setUp();
 
         Gate::define('admin', fn ($u) => $u->email === 'admin@teste.com');
+        Gate::define('user', fn () => true);
         Papeis::sincronizar();
     }
 

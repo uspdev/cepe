@@ -7,6 +7,9 @@ use App\Http\Controllers\TurmaController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Atestados\AtestadoController;
 use App\Http\Controllers\Atestados\MeusAtestadosController;
+use App\Http\Controllers\Carteiras\CarteiraController;
+use App\Http\Controllers\Carteiras\MinhasCarteirasController;
+use App\Http\Controllers\Carteiras\TaxaCarteiraController;
 use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\FilaController;
@@ -83,6 +86,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/meus-atestados', [MeusAtestadosController::class, 'index']);
     Route::get('/meus-atestados/create', [MeusAtestadosController::class, 'create']);
     Route::post('/meus-atestados', [MeusAtestadosController::class, 'store']);
+
+    Route::get('/minhas-carteiras', [MinhasCarteirasController::class, 'index']);
+    Route::get('/minhas-carteiras/create', [MinhasCarteirasController::class, 'create']);
+    Route::post('/minhas-carteiras', [MinhasCarteirasController::class, 'store']);
+    Route::get('/minhas-carteiras/{carteira}', [MinhasCarteirasController::class, 'show']);
+    Route::post('/minhas-carteiras/{carteira}/documentos', [MinhasCarteirasController::class, 'reenviar']);
+    Route::post('/perfil/carteira', [MinhasCarteirasController::class, 'vincular']);
+
+    Route::get('/carteiras-taxas', [TaxaCarteiraController::class, 'edit']);
+    Route::put('/carteiras-taxas', [TaxaCarteiraController::class, 'update']);
+
+    Route::get('/carteiras', [CarteiraController::class, 'index']);
+    Route::get('/carteiras/{carteira}', [CarteiraController::class, 'show']);
+    Route::patch('/carteiras/{carteira}/analise', [CarteiraController::class, 'analise']);
+    Route::get('/carteiras/{carteira}/documentos/{documento}', [CarteiraController::class, 'documento']);
 
     Route::get('/atestados', [AtestadoController::class, 'index']);
     Route::get('/atestados/exportar', [AtestadoController::class, 'exportar']);

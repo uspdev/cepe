@@ -91,6 +91,18 @@ class User extends Authenticatable
         return $this->hasMany(Fila::class);
     }
 
+    /** Carteiras CEPEUSP solicitadas pelo usuário como titular (para si ou para dependentes). */
+    public function carteirasSolicitadas()
+    {
+        return $this->hasMany(Carteira::class, 'solicitante_id');
+    }
+
+    /** Carteiras CEPEUSP das quais o usuário é o beneficiário vinculado. */
+    public function carteiras()
+    {
+        return $this->hasMany(Carteira::class);
+    }
+
     public function turmasComoProfessor()
     {
         return $this->hasMany(Turma::class, 'professor_id');

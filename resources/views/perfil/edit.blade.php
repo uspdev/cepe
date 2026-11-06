@@ -27,10 +27,6 @@
 
                 <div class="form-row">
                     <div class="form-group col-md-3">
-                        <label for="numero_cepeusp">Número CEPEUSP</label>
-                        <input type="text" class="form-control{{ $erro('numero_cepeusp') }}" id="numero_cepeusp" name="numero_cepeusp" @disabled(! $admin) value="{{ $valor('numero_cepeusp') }}">
-                    </div>
-                    <div class="form-group col-md-3">
                         <label for="credito">Crédito (R$)</label>
                         <input type="number" min="0" step="1" class="form-control{{ $erro('credito') }}" id="credito" name="credito" @disabled(! $admin) value="{{ $valor('credito') ?? 0 }}">
                     </div>
@@ -183,6 +179,27 @@
             </div>
         </form>
     </div>
+
+    @php($carteiraUsuario = $proprio ? auth()->user()->carteiras()->latest('validade_fim')->first() : null)
+    @if($proprio && ! $perfil->numeroCepeuspVigente())
+        <div class="card shadow-sm col-md-10 mx-auto p-0 mt-4">
+            <div class="card-header bg-white py-3"><h2 class="h5 mb-0">Tenho Carteira CEPEUSP</h2></div>
+            <form method="POST" action="/perfil/carteira" class="card-body">
+                @csrf
+                <p class="text-muted small">
+                    Dependentes com carteira ativa (solicitada pelo titular) informam aqui o número para se inscrever nos cursos.
+                    O CPF, ou o nome e a data de nascimento, do perfil devem ser os mesmos da solicitação.
+                    @if($carteiraUsuario?->numero)<br>Sua carteira nº {{ $carteiraUsuario->numero }} está com status "{{ $carteiraUsuario->status_nome }}"{{ $carteiraUsuario->validade_fim ? ' e validade até '.$carteiraUsuario->validade_fim->format('d/m/Y') : '' }}.@endif
+                </p>
+                <div class="form-inline">
+                    <label for="numero_carteira" class="mr-2">Número da carteira</label>
+                    <input type="text" id="numero_carteira" name="numero" class="form-control mr-2{{ $errors->has('numero') ? ' is-invalid' : '' }}" value="{{ old('numero') }}">
+                    <button type="submit" class="btn btn-outline-primary">Validar</button>
+                </div>
+                @error('numero')<div class="text-danger small mt-2">{{ $message }}</div>@enderror
+            </form>
+        </div>
+    @endif
 </div>
 @endsection
 

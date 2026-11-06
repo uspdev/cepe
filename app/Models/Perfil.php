@@ -15,7 +15,7 @@ class Perfil extends Model
         'faixa_grau', 'associacao', 'formacao', 'instituicao', 'profissao', 'organizacao',
     ];
 
-    public const CAMPOS_ADMIN = ['numero_cepeusp', 'credito', 'vinculo_usp', 'unidade_usp'];
+    public const CAMPOS_ADMIN = ['credito', 'vinculo_usp', 'unidade_usp'];
 
     /** Preenchidos pelo sistema (Senha Única / admin), não pelo usuário. */
     public const CAMPOS_SISTEMA = ['vinculos_usp', 'vinculo_manual'];
@@ -76,14 +76,36 @@ class Perfil extends Model
         return array_intersect($this->vinculos_usp, config('cepe.vinculos_usp_permitidos')) !== [];
     }
 
-    /** 'dependente' (9063/9263), 'conveniado' (9163) ou null, pelo prefixo do número CEPEUSP. */
+    /** Carteira CEPEUSP vigente (número vive na carteira, vinculada à conta do beneficiário). */
+    public function numeroCepeuspVigente(): bool
+    {
+        return $this->carteiraVigente() !== null;
+    }
+
+    /** 'dependente' ou 'conveniado', conforme a categoria da carteira vigente do beneficiário. */
     public function categoriaCepeusp(): ?string
     {
-        return match (substr((string) $this->numero_cepeusp, 0, 4)) {
-            '9063', '9263' => 'dependente',
-            '9163' => 'conveniado',
+        $carteira = $this->carteiraVigente();
+        if (! $carteira) {
+            return null;
+        }
+
+        return match (true) {
+            $carteira->config('beneficiario') === 'dependente' => 'dependente',
+            $carteira->categoria === 'conveniado' => 'conveniado',
             default => null,
         };
+    }
+
+    /** Número da carteira vigente, para exibição no perfil. */
+    public function numeroCepeusp(): ?string
+    {
+        return $this->carteiraVigente()?->numero;
+    }
+
+    private function carteiraVigente(): ?Carteira
+    {
+        return $this->user?->carteiras()->vigentes()->orderByDesc('validade_fim')->first();
     }
 
     /** true/false conforme a idade esteja na faixa do PAR-Q; null quando a data de nascimento é desconhecida. */

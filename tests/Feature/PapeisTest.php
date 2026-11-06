@@ -258,5 +258,7 @@ class PapeisTest extends TestCase
         $this->assertTrue(Gate::forUser($this->usuario('avaliador-dermatologico'))->allows('analisar-atestados'));
         $this->assertFalse(Gate::forUser($this->usuario('professor'))->allows('analisar-atestados'));
         $this->assertFalse(Gate::forUser($this->usuario())->allows('gerenciar-catalogo'));
+        $this->assertTrue(Gate::forUser($this->usuario('sru'))->allows('carteiras.analisar'));
+        $this->assertFalse(Gate::forUser($this->usuario('gestor-cursos'))->allows('carteiras.analisar'));
     }
 }

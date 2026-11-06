@@ -71,7 +71,6 @@ class PerfilRequest extends FormRequest
         }
 
         if (Gate::allows('perfis.gerenciar')) {
-            $rules['numero_cepeusp'] = 'nullable|digits_between:1,20';
             $rules['credito'] = 'nullable|integer|min:0';
             $rules['vinculo_usp'] = 'nullable|max:255';
             $rules['unidade_usp'] = 'nullable|max:255';

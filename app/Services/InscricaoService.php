@@ -77,7 +77,7 @@ class InscricaoService
         return match ($perfil) {
             'tax_ex' => true,
             'tax_ter' => ($perfilUsuario->idade ?? 0) >= 60,
-            'tax_cepe' => filled($perfilUsuario->numero_cepeusp),
+            'tax_cepe' => $perfilUsuario->numeroCepeuspVigente(),
             'tax_alumni' => $perfilUsuario->temVinculo('ALUMNI'),
             'tax_child' => $perfilUsuario->categoriaCepeusp() === 'dependente',
             'tax_con' => $perfilUsuario->categoriaCepeusp() === 'conveniado',

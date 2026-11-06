@@ -129,18 +129,17 @@ class PerfilTest extends TestCase
     {
         $this->gates();
         $user = User::factory()->create();
-        $restritos = ['credito' => 50, 'numero_cepeusp' => '926300001', 'vinculo_usp' => 'Docente'];
+        $restritos = ['credito' => 50, 'vinculo_usp' => 'Docente'];
 
         $this->actingAs($user)->patch('/perfil', $this->dados($restritos))->assertSessionHasNoErrors();
         $perfil = $user->fresh()->perfil;
         $this->assertSame(0, $perfil->credito);
-        $this->assertNull($perfil->numero_cepeusp);
 
         $admin = User::factory()->create(['email' => 'admin@teste.com']);
         $this->actingAs($admin)->patch("/usuarios/{$user->id}/perfil", $this->dados($restritos))->assertSessionHasNoErrors();
         $perfil = $user->fresh()->perfil;
         $this->assertSame(50, $perfil->credito);
-        $this->assertSame('926300001', $perfil->numero_cepeusp);
+        $this->assertSame('Docente', $perfil->vinculo_usp);
     }
 
     public function test_autorizacao_entre_usuarios(): void
@@ -171,9 +170,9 @@ class PerfilTest extends TestCase
     {
         $this->gates();
         $user = User::factory()->create();
-        Perfil::create(['user_id' => $user->id, 'vinculo_usp' => 'Docente', 'unidade_usp' => 'EEFE - Escola', 'numero_cepeusp' => '926300001', 'credito' => 20]);
+        Perfil::create(['user_id' => $user->id, 'vinculo_usp' => 'Docente', 'unidade_usp' => 'EEFE - Escola', 'credito' => 20]);
 
-        $html = $this->actingAs($user)->get('/perfil')->assertOk()->assertSee('Docente')->assertSee('EEFE - Escola')->assertSee('926300001')->getContent();
+        $html = $this->actingAs($user)->get('/perfil')->assertOk()->assertSee('Docente')->assertSee('EEFE - Escola')->assertSee('20')->getContent();
         $this->assertMatchesRegularExpression('/name="vinculo_usp"\s+disabled/', $html);
         $this->assertMatchesRegularExpression('/name="credito"\s+disabled/', $html);
 

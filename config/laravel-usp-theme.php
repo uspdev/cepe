@@ -59,6 +59,15 @@ $menu = [
         'can' => 'user',
     ],
     [
+        'text' => 'Carteiras',
+        'submenu' => [
+            ['text' => 'Minhas carteiras', 'url' => config('app.url').'/minhas-carteiras', 'can' => 'user'],
+            ['text' => 'Solicitações', 'url' => config('app.url').'/carteiras', 'can' => 'carteiras.analisar'],
+            ['text' => 'Taxas', 'url' => config('app.url').'/carteiras-taxas', 'can' => 'taxas.gerenciar'],
+        ],
+        'can' => 'user',
+    ],
+    [
         'text' => 'Está logado',
         'url' => config('app.url').'/logado', // com caminho absoluto
         'can' => 'user',

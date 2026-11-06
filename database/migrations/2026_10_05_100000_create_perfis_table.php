@@ -44,7 +44,6 @@ return new class extends Migration
             $table->string('organizacao')->nullable();
 
             // restritos (somente admin)
-            $table->string('numero_cepeusp')->nullable();
             $table->unsignedInteger('credito')->default(0); // reais inteiros
             $table->string('vinculo_usp')->nullable();
             $table->string('unidade_usp')->nullable();
