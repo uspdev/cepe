@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AtividadeController;
+use App\Http\Controllers\Auth\CadastroController;
+use App\Http\Controllers\Auth\LoginLocalController;
 use App\Http\Controllers\IndexController;
 use App\Http\Controllers\OferecimentoController;
 use App\Http\Controllers\TurmaController;
@@ -18,6 +20,14 @@ use App\Http\Controllers\InscricaoController;
 use App\Http\Controllers\MinhasInscricoesController;
 
 Route::get('/', [IndexController::class, 'index'])->name('home');
+
+// Login local e cadastro da comunidade externa (as rotas da senhaunica-socialite seguem intactas)
+Route::middleware('guest')->group(function () {
+    Route::get('/entrar', [LoginLocalController::class, 'create'])->name('entrar');
+    Route::post('/entrar', [LoginLocalController::class, 'store'])->name('entrar.store');
+    Route::get('/cadastro', [CadastroController::class, 'create'])->name('cadastro');
+    Route::post('/cadastro', [CadastroController::class, 'store'])->name('cadastro.store');
+});
 
 // Atividades
 Route::controller(AtividadeController::class)->prefix('atividades')->name('atividades.')->group(function () {

@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Traits\HasRoles;
 use Uspdev\SenhaunicaSocialite\Traits\HasSenhaunica;
 
@@ -22,6 +23,14 @@ class User extends Authenticatable
 
     use HasRoles;
     use HasSenhaunica;
+
+    /** Garante a permission hierárquica `user` (gate `user` da senhaunica-socialite) a contas locais. */
+    public function concederAcessoBasico(): void
+    {
+        if ($this->level === '') {
+            $this->givePermissionTo(Permission::findOrCreate('user', self::$hierarquiaNs));
+        }
+    }
 
     public function perfil()
     {

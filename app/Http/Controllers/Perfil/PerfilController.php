@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\PerfilRequest;
 use App\Models\Perfil;
 use App\Models\User;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
 
 class PerfilController extends Controller
@@ -22,15 +21,8 @@ class PerfilController extends Controller
     public function update(PerfilRequest $request, ?User $user = null)
     {
         $alvo = $request->alvo();
-        $dados = $request->safe()->only(Perfil::CAMPOS_USUARIO);
-        $dados['data_nascimento'] = Carbon::createFromFormat('d/m/Y', $request->validated('data_nascimento'))->toDateString();
+        $dados = $request->dadosPerfil();
 
-        if ($dados['sem_cpf']) {
-            $dados['cpf'] = null;
-        }
-        if ($dados['sem_rg']) {
-            $dados['rg'] = null;
-        }
         if (Gate::allows('perfis.gerenciar')) {
             $admin = $request->safe()->only(Perfil::CAMPOS_ADMIN);
             $admin['credito'] = (int) ($admin['credito'] ?? 0);
