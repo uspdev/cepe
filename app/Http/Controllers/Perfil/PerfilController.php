@@ -10,6 +10,14 @@ use Illuminate\Support\Facades\Gate;
 
 class PerfilController extends Controller
 {
+    public function index()
+    {
+        Gate::authorize('perfis.gerenciar');
+
+        $users = User::orderBy('name')->get();
+        return view('perfil.index', compact('users'));
+    }
+    
     public function edit(?User $user = null)
     {
         $user ??= auth()->user();

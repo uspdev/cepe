@@ -88,10 +88,12 @@ Route::middleware('auth')->group(function () {
 
 
 Route::middleware('auth')->group(function () {
-    Route::get('/perfil', [PerfilController::class, 'edit']);
-    Route::patch('/perfil', [PerfilController::class, 'update']);
-    Route::get('/usuarios/{user}/perfil', [PerfilController::class, 'edit']);
-    Route::patch('/usuarios/{user}/perfil', [PerfilController::class, 'update']);
+    
+    Route::get('/perfil', [PerfilController::class, 'edit'])->name('perfil.edit');
+    Route::patch('/perfil', [PerfilController::class, 'update'])->name('perfil.update');
+    Route::get('/usuarios', [PerfilController::class, 'index'])->name('usuarios.index');
+    Route::get('/usuarios/{user}/perfil', [PerfilController::class, 'edit'])->name('usuarios.perfil.edit');
+    Route::patch('/usuarios/{user}/perfil', [PerfilController::class, 'update'])->name('usuarios.perfil.update');
 
     Route::get('/meus-atestados', [MeusAtestadosController::class, 'index']);
     Route::get('/meus-atestados/create', [MeusAtestadosController::class, 'create']);
