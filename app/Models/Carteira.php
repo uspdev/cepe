@@ -6,26 +6,27 @@ use Illuminate\Database\Eloquent\Model;
 
 class Carteira extends Model
 {
+    public const STATUS_GERENCIAVEIS = [
+        'aprovada', 'aguardando_pagamento', 'em_confeccao', 'disponivel', 'ativa', 'inativa',
+    ];
+
     /** Status em que a carteira já dá direito ao benefício (pagamento confirmado). */
     public const STATUS_BENEFICIO = ['em_confeccao', 'disponivel', 'ativa'];
 
     /** Transições permitidas na análise da SRU, por status atual. */
     public const TRANSICOES = [
-        'em_analise' => ['aprovada', 'pendente', 'reprovada'],
-        'pendente' => ['aprovada', 'reprovada'],
         'aprovada' => ['aguardando_pagamento', 'inativa'],
         'aguardando_pagamento' => ['em_confeccao', 'inativa'],
         'em_confeccao' => ['disponivel', 'inativa'],
         'disponivel' => ['ativa', 'inativa'],
         'ativa' => ['inativa'],
-        'reprovada' => [],
         'inativa' => [],
     ];
 
     protected $fillable = [
-        'solicitante_id', 'user_id', 'categoria',
-        'nome', 'cpf', 'data_nascimento', 'parentesco',
+        'user_id', 'categoria', 'nome', 'cpf', 'data_nascimento', 'parentesco',
         'status', 'observacao', 'numero', 'via', 'validade_inicio', 'validade_fim',
+        'analisado_por', 'analisado_em',
     ];
 
     protected $casts = [
@@ -35,19 +36,14 @@ class Carteira extends Model
         'analisado_em' => 'datetime',
     ];
 
-    public function solicitante()
+    public function solicitacoes()
     {
-        return $this->belongsTo(User::class, 'solicitante_id');
+        return $this->hasMany(SolicitacaoCarteira::class, 'carteira_id');
     }
 
     public function user()
     {
         return $this->belongsTo(User::class);
-    }
-
-    public function documentos()
-    {
-        return $this->hasMany(CarteiraDocumento::class);
     }
 
     public function analisador()

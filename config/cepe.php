@@ -95,6 +95,7 @@ return [
         'atestados.analisar',
         'atestados.dermatologico',
         'carteiras.analisar',
+        'carteiras.vincular',
         'taxas.gerenciar',
         'perfis.gerenciar',
         'grupo.cursos',
@@ -102,7 +103,7 @@ return [
     ],
     // roles da aplicação (guard web) e suas permissions; sincronizadas por `php artisan cepe:papeis`
     'papeis' => [
-        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'carteiras.analisar', 'taxas.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos', 'grupo.eventos'],
+        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'carteiras.analisar', 'carteiras.vincular', 'taxas.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos', 'grupo.eventos'],
         'gestor-cursos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos'],
         'gestor-eventos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.eventos'],
         'avaliador-dermatologico' => ['atestados.dermatologico'],

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5c53bebb077ffb1542a903ca42528786",
+    "content-hash": "43a2a1139b2787bf5010237b1c91dda0",
     "packages": [
         {
             "name": "brick/math",
@@ -598,6 +598,78 @@
                 }
             ],
             "time": "2025-10-31T18:51:33+00:00"
+        },
+        {
+            "name": "econea/nusoap",
+            "version": "v0.9.17",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/contributte/nusoap.git",
+                "reference": "ac2322f37808ecb1a2b84ed469cba9c51648eb8d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/contributte/nusoap/zipball/ac2322f37808ecb1a2b84ed469cba9c51648eb8d",
+                "reference": "ac2322f37808ecb1a2b84ed469cba9c51648eb8d",
+                "shasum": ""
+            },
+            "require": {
+                "ext-curl": "*",
+                "ext-json": "*",
+                "ext-xml": "*",
+                "ext-zlib": "*",
+                "php": ">=5.4"
+            },
+            "require-dev": {
+                "php-parallel-lint/php-parallel-lint": "~1.2.0"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-master": "0.10.x-dev"
+                }
+            },
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "LGPL-2.1-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Milan Felix Šulc",
+                    "homepage": "https://f3l1x.io"
+                }
+            ],
+            "description": "Fixed NuSOAP for PHP 5.4 - 8.2",
+            "homepage": "https://github.com/pwnlabs/nusoap",
+            "keywords": [
+                "client",
+                "http",
+                "nusoap",
+                "php",
+                "soap",
+                "transport",
+                "xml"
+            ],
+            "support": {
+                "issues": "https://github.com/contributte/nusoap/issues",
+                "source": "https://github.com/contributte/nusoap/tree/v0.9.17"
+            },
+            "funding": [
+                {
+                    "url": "https://contributte.org/partners.html",
+                    "type": "custom"
+                },
+                {
+                    "url": "https://github.com/f3l1x",
+                    "type": "github"
+                }
+            ],
+            "time": "2024-01-25T09:08:59+00:00"
         },
         {
             "name": "egulias/email-validator",
@@ -6814,6 +6886,48 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
+        },
+        {
+            "name": "uspdev/boleto",
+            "version": "1.0.9",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/uspdev/boleto.git",
+                "reference": "43013b915d951d236c168d3e75a6d6a6091d2a53"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/uspdev/boleto/zipball/43013b915d951d236c168d3e75a6d6a6091d2a53",
+                "reference": "43013b915d951d236c168d3e75a6d6a6091d2a53",
+                "shasum": ""
+            },
+            "require": {
+                "econea/nusoap": "0.9.17"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Uspdev\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Thiago Gomes Verissimo",
+                    "email": "thiago.verissimo@usp.br",
+                    "homepage": "https://github.com/thiagogomesverissimo"
+                }
+            ],
+            "description": "Classe PHP para uso de boleto na USP",
+            "homepage": "https://github.com/uspdev/boleto",
+            "support": {
+                "issues": "https://github.com/uspdev/boleto/issues",
+                "source": "https://github.com/uspdev/boleto/tree/1.0.9"
+            },
+            "time": "2024-12-15T16:54:07+00:00"
         },
         {
             "name": "uspdev/cadastros-auxiliares-client",

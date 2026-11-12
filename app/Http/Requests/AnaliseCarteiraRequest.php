@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Carteira;
+use App\Models\SolicitacaoCarteira;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Str;
 
@@ -10,13 +11,13 @@ class AnaliseCarteiraRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('analisar', $this->route('carteira'));
+        return $this->user()->can('analisar', $this->route('solicitacao'));
     }
 
     public function rules(): array
     {
         return [
-            'status' => 'required|in:aprovada,pendente,reprovada,aguardando_pagamento,em_confeccao,disponivel,ativa,inativa',
+            'status' => 'required|in:aprovada,pendente,reprovada',
             'numero' => 'nullable|required_if:status,aprovada|digits_between:1,20',
             'via' => 'nullable|integer|min:1',
             'observacao' => 'nullable|required_if:status,pendente|required_if:status,reprovada|string',
@@ -27,12 +28,11 @@ class AnaliseCarteiraRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator) {
-            /** @var Carteira $carteira */
-            $carteira = $this->route('carteira');
+            /** @var SolicitacaoCarteira $solicitacao */
+            $solicitacao = $this->route('solicitacao');
             $status = $this->input('status');
 
-            // manter o status atual vale como "apenas salvar número/via"
-            if ($status !== $carteira->status && ! in_array($status, $carteira->proximosStatus(), true)) {
+            if (! in_array($status, $solicitacao->proximosStatus(), true)) {
                 $validator->errors()->add('status', 'Transição não permitida a partir do status atual.');
 
                 return;
@@ -40,14 +40,15 @@ class AnaliseCarteiraRequest extends FormRequest
 
             $numero = (string) $this->input('numero');
             if ($status === 'aprovada') {
-                $prefixos = $carteira->config('prefixos') ?? [];
+                $prefixos = $solicitacao->config('prefixos') ?? [];
                 if ($prefixos && ! Str::startsWith($numero, $prefixos)) {
                     $validator->errors()->add('numero', 'O número desta categoria deve começar com '.implode(' ou ', $prefixos).'.');
                 }
             }
 
-            if ($numero && $numero !== $carteira->numero
-                && Carteira::where('numero', $numero)->exists()) {
+            if ($numero && Carteira::where('numero', $numero)
+                ->when($solicitacao->carteira_id, fn ($q) => $q->where('id', '<>', $solicitacao->carteira_id))
+                ->exists()) {
                 $validator->errors()->add('numero', 'Este número já pertence a outra carteira.');
             }
         }];

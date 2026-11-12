@@ -51,8 +51,9 @@ class ElegibilidadePerfilTest extends TestCase
     {
         $user = $this->usuario();
         \App\Models\Carteira::create([
-            'solicitante_id' => $user->id, 'user_id' => $user->id, 'categoria' => $categoria,
-            'nome' => $user->name, 'status' => 'ativa', 'numero' => '90631234',
+            'user_id' => $user->id, 'categoria' => $categoria,
+            'nome' => $user->name, 'status' => 'ativa',
+            'numero' => ($categoria === 'conveniado' ? '9163' : '9063').str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),
             'validade_inicio' => now()->toDateString(), 'validade_fim' => now()->addYear()->toDateString(),
         ]);
 

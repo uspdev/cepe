@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Rules\Cpf;
+use App\Models\Carteira;
 use App\Services\CarteiraService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
@@ -38,6 +39,13 @@ class CarteiraRequest extends FormRequest
         ];
     }
 
+    private function carteiraRenovada(): ?Carteira
+    {
+        $id = $this->input('carteira_id');
+
+        return is_scalar($id) && ctype_digit((string) $id) ? Carteira::find($id) : null;
+    }
+
     protected function prepareForValidation(): void
     {
         if (is_string($this->input('cpf'))) {
@@ -56,8 +64,14 @@ class CarteiraRequest extends FormRequest
     {
         $servico = app(CarteiraService::class);
         $categoria = $this->categoria();
+        $renovar = $this->carteiraRenovada();
+        $categorias = array_keys($servico->categoriasPermitidas($this->user()));
+        if ($renovar && $servico->podeRenovar($this->user(), $renovar)) {
+            $categorias[] = $renovar->categoria;
+        }
         $rules = [
-            'categoria' => ['required', Rule::in(array_keys($servico->categoriasPermitidas($this->user())))],
+            'categoria' => ['required', Rule::in(array_unique($categorias))],
+            'carteira_id' => ['nullable', 'integer', Rule::exists('carteiras', 'id')],
         ];
 
         $config = config("cepe.carteiras.categorias.{$categoria}");
@@ -87,6 +101,16 @@ class CarteiraRequest extends FormRequest
     public function after(): array
     {
         return [function ($validator) {
+            if ($this->filled('carteira_id')) {
+                $carteira = $this->carteiraRenovada();
+                if (! $carteira || ! app(CarteiraService::class)->podeRenovar($this->user(), $carteira)
+                    || $carteira->categoria !== $this->categoria()) {
+                    $validator->errors()->add('carteira_id', 'Esta carteira não pode ser renovada por esta conta.');
+
+                    return;
+                }
+            }
+
             $faixa = config('cepe.carteiras.idade_parentesco.'.$this->input('parentesco'));
             if (! $this->informaBeneficiario() || ! $faixa || $validator->errors()->has('data_nascimento')) {
                 return;

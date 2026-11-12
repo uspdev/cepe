@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Perfil;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\PerfilRequest;
+use App\Models\Carteira;
 use App\Models\Perfil;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -23,7 +24,17 @@ class PerfilController extends Controller
         $user ??= auth()->user();
         Gate::authorize('update', $user);
 
-        return view('perfil.edit', ['alvo' => $user, 'perfil' => $user->perfilOuNovo(), 'proprio' => $user->is(auth()->user())]);
+        return view('perfil.edit', [
+            'alvo' => $user,
+            'perfil' => $user->perfilOuNovo(),
+            'proprio' => $user->is(auth()->user()),
+            'carteiraVigente' => $user->carteiras()->vigentes()->orderByDesc('validade_fim')->first(),
+            'carteirasVinculadas' => $user->carteiras()->latest('validade_fim')->get(),
+            'carteirasDisponiveis' => Gate::allows('carteiras.vincular')
+                ? Carteira::whereNull('user_id')->orderBy('numero')->get()
+                : collect(),
+            'podeVincularCarteiras' => Gate::allows('carteiras.vincular'),
+        ]);
     }
 
     public function update(PerfilRequest $request, ?User $user = null)

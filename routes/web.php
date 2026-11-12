@@ -102,17 +102,21 @@ Route::middleware('auth')->group(function () {
     Route::get('/minhas-carteiras', [MinhasCarteirasController::class, 'index']);
     Route::get('/minhas-carteiras/create', [MinhasCarteirasController::class, 'create']);
     Route::post('/minhas-carteiras', [MinhasCarteirasController::class, 'store']);
-    Route::get('/minhas-carteiras/{carteira}', [MinhasCarteirasController::class, 'show']);
-    Route::post('/minhas-carteiras/{carteira}/documentos', [MinhasCarteirasController::class, 'reenviar']);
-    Route::post('/perfil/carteira', [MinhasCarteirasController::class, 'vincular']);
+    Route::get('/minhas-carteiras/{solicitacao}', [MinhasCarteirasController::class, 'show']);
+    Route::post('/minhas-carteiras/{solicitacao}/documentos', [MinhasCarteirasController::class, 'reenviar']);
+
+    Route::post('/usuarios/{user}/carteiras', [CarteiraController::class, 'criarParaUsuario']);
+    Route::post('/usuarios/{user}/carteiras/vincular', [CarteiraController::class, 'vincular']);
+    Route::delete('/usuarios/{user}/carteiras/{carteira}', [CarteiraController::class, 'desvincular']);
 
     Route::get('/carteiras-taxas', [TaxaCarteiraController::class, 'edit']);
     Route::put('/carteiras-taxas', [TaxaCarteiraController::class, 'update']);
 
     Route::get('/carteiras', [CarteiraController::class, 'index']);
-    Route::get('/carteiras/{carteira}', [CarteiraController::class, 'show']);
-    Route::patch('/carteiras/{carteira}/analise', [CarteiraController::class, 'analise']);
-    Route::get('/carteiras/{carteira}/documentos/{documento}', [CarteiraController::class, 'documento']);
+    Route::get('/carteiras/{solicitacao}', [CarteiraController::class, 'show']);
+    Route::patch('/carteiras/{solicitacao}/analise', [CarteiraController::class, 'analise']);
+    Route::patch('/carteiras/emitidas/{carteira}/status', [CarteiraController::class, 'transitar']);
+    Route::get('/carteiras/{solicitacao}/documentos/{documento}', [CarteiraController::class, 'documento']);
 
     Route::get('/atestados', [AtestadoController::class, 'index']);
     Route::get('/atestados/exportar', [AtestadoController::class, 'exportar']);

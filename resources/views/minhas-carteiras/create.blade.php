@@ -16,7 +16,7 @@
 <div class="container py-4">
     <div class="card shadow-sm col-md-10 mx-auto p-0">
         <div class="card-header bg-white py-3">
-            <h1 class="h4 mb-0 text-primary">Solicitar Carteira CEPEUSP</h1>
+            <h1 class="h4 mb-0 text-primary">{{ $renovar ? 'Solicitar renovação de carteira' : 'Solicitar Carteira CEPEUSP' }}</h1>
         </div>
 
         <form method="POST" action="/minhas-carteiras" enctype="multipart/form-data">
@@ -27,11 +27,16 @@
                 @endif
 
                 <input type="hidden" name="categoria" value="{{ $categoria }}">
-                <ul class="nav nav-pills mb-3">
-                    @foreach($categorias as $chave => $cat)
-                        <li class="nav-item"><a class="nav-link {{ $categoria === $chave ? 'active' : '' }}" href="/minhas-carteiras/create?categoria={{ $chave }}">{{ $cat['rotulo'] }}</a></li>
-                    @endforeach
-                </ul>
+                @if($renovar)
+                    <input type="hidden" name="carteira_id" value="{{ $renovar->id }}">
+                    <p class="text-muted">A solicitação atualizará a carteira nº {{ $renovar->numero }}. A via será mantida, a menos que a SRU registre uma nova emissão.</p>
+                @else
+                    <ul class="nav nav-pills mb-3">
+                        @foreach($categorias as $chave => $cat)
+                            <li class="nav-item"><a class="nav-link {{ $categoria === $chave ? 'active' : '' }}" href="/minhas-carteiras/create?categoria={{ $chave }}">{{ $cat['rotulo'] }}</a></li>
+                        @endforeach
+                    </ul>
+                @endif
 
                 @php($taxa = \App\Models\CarteiraTaxa::descricao($categoria))
                 @if($taxa)
@@ -45,25 +50,30 @@
                     <div class="form-row">
                         <div class="form-group col-md-6">
                             <label for="nome">Nome completo</label>
-                            <input type="text" class="form-control{{ $errors->has('nome') ? ' is-invalid' : '' }}" id="nome" name="nome" value="{{ old('nome') }}">
+                            <input type="text" class="form-control{{ $errors->has('nome') ? ' is-invalid' : '' }}" id="nome" name="nome" value="{{ old('nome', $renovar?->nome) }}" @readonly($renovar)>
                         </div>
                         <div class="form-group col-md-3">
                             <label for="cpf">CPF</label>
-                            <input type="text" class="form-control{{ $errors->has('cpf') ? ' is-invalid' : '' }}" id="cpf" name="cpf" value="{{ old('cpf') }}" placeholder="000.000.000-00">
+                            <input type="text" class="form-control{{ $errors->has('cpf') ? ' is-invalid' : '' }}" id="cpf" name="cpf" value="{{ old('cpf', $renovar?->cpf) }}" placeholder="000.000.000-00" @readonly($renovar)>
                         </div>
                         <div class="form-group col-md-3">
                             <label for="data_nascimento">Data de nascimento</label>
-                            <input type="text" class="form-control datepicker{{ $errors->has('data_nascimento') ? ' is-invalid' : '' }}" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento') }}" placeholder="dd/mm/aaaa">
+                            <input type="text" class="form-control datepicker{{ $errors->has('data_nascimento') ? ' is-invalid' : '' }}" id="data_nascimento" name="data_nascimento" value="{{ old('data_nascimento', $renovar?->data_nascimento?->format('d/m/Y')) }}" placeholder="dd/mm/aaaa" @readonly($renovar)>
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="parentesco">Parentesco com o titular</label>
-                        <select class="form-control{{ $errors->has('parentesco') ? ' is-invalid' : '' }}" id="parentesco" name="parentesco">
-                            <option value="">Selecione</option>
-                            @foreach(array_keys($config['parentescos']) as $parentesco)
-                                <option value="{{ $parentesco }}" @selected(old('parentesco') === $parentesco)>{{ config('cepe.carteiras.parentescos.'.$parentesco) }}</option>
-                            @endforeach
-                        </select>
+                        @if($renovar)
+                            <input type="hidden" name="parentesco" value="{{ $renovar->parentesco }}">
+                            <input type="text" class="form-control" id="parentesco" value="{{ $renovar->parentesco_nome }}" disabled>
+                        @else
+                            <select class="form-control{{ $errors->has('parentesco') ? ' is-invalid' : '' }}" id="parentesco" name="parentesco">
+                                <option value="">Selecione</option>
+                                @foreach(array_keys($config['parentescos']) as $parentesco)
+                                    <option value="{{ $parentesco }}" @selected(old('parentesco') === $parentesco)>{{ config('cepe.carteiras.parentescos.'.$parentesco) }}</option>
+                                @endforeach
+                            </select>
+                        @endif
                         <small class="form-text text-muted">Ex-cônjuge não é considerado dependente.</small>
                     </div>
                 @else

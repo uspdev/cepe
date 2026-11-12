@@ -11,16 +11,11 @@ return new class extends Migration
         Schema::create('carteira_documentos', function (Blueprint $table) {
             $table->id();
             $table->timestamps();
-            $table->foreignId('carteira_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('solicitacao_id')->constrained('solicitacoes_carteiras');
             $table->string('tipo');
             $table->string('arquivo');
 
-            $table->unique(['carteira_id', 'tipo']);
+            $table->unique(['solicitacao_id', 'tipo']);
         });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('carteira_documentos');
     }
 };

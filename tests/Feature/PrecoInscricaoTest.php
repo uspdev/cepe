@@ -71,7 +71,7 @@ class PrecoInscricaoTest extends TestCase
     {
         $usuario = $this->usuario();
         \App\Models\Carteira::create([
-            'solicitante_id' => $usuario->id, 'user_id' => $usuario->id, 'categoria' => 'conveniado',
+            'user_id' => $usuario->id, 'categoria' => 'conveniado',
             'nome' => $usuario->name, 'status' => 'ativa', 'numero' => '91631234',
             'validade_inicio' => now()->toDateString(), 'validade_fim' => now()->addYear()->toDateString(),
         ]);

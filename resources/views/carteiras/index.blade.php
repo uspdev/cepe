@@ -11,7 +11,8 @@
                 <div class="col-md-3 mb-2">
                     <select name="status" class="form-control">
                         <option value="todos">Todos os status</option>
-                        @foreach(config('cepe.carteiras.status') as $k => $n)
+                        @foreach(array_keys(\App\Models\SolicitacaoCarteira::TRANSICOES) as $k)
+                            @php($n = config('cepe.carteiras.status.'.$k, $k))
                             <option value="{{ $k }}" @selected((request()->has('status') ? request('status') : 'em_analise') == $k)>{{ $n }}</option>
                         @endforeach
                     </select>
@@ -34,13 +35,13 @@
             <table class="table table-hover mb-0">
                 <thead class="thead-light"><tr><th>Beneficiário</th><th>Titular</th><th>Categoria</th><th>Número</th><th>Validade</th><th>Status</th><th></th></tr></thead>
                 <tbody>
-                    @forelse($carteiras as $c)
+                    @forelse($solicitacoes as $c)
                         <tr>
                             <td>{{ $c->nome }}@if($c->parentesco_nome)<br><small class="text-muted">{{ $c->parentesco_nome }}</small>@endif</td>
                             <td>{{ $c->solicitante?->name }}<br><small class="text-muted">{{ $c->solicitante?->email }}</small></td>
                             <td>{{ $c->categoria_nome }}</td>
-                            <td>{{ $c->numero ?? '-' }}@if($c->via)<br><small class="text-muted">{{ $c->via }}ª via</small>@endif</td>
-                            <td>{{ $c->validade_fim?->format('d/m/Y') ?? '-' }}</td>
+                            <td>{{ $c->carteira?->numero ?? '-' }}@if($c->carteira?->via)<br><small class="text-muted">{{ $c->carteira->via }}ª via</small>@endif</td>
+                            <td>{{ $c->carteira?->validade_fim?->format('d/m/Y') ?? '-' }}</td>
                             <td><span class="badge badge-secondary">{{ $c->status_nome }}</span></td>
                             <td class="text-right"><a href="/carteiras/{{ $c->id }}" class="btn btn-sm btn-outline-primary">Analisar</a></td>
                         </tr>
@@ -51,6 +52,6 @@
             </table>
         </div>
     </div>
-    <div class="mt-3">{{ $carteiras->links() }}</div>
+    <div class="mt-3">{{ $solicitacoes->links() }}</div>
 </div>
 @endsection

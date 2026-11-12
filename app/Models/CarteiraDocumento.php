@@ -6,11 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class CarteiraDocumento extends Model
 {
-    protected $fillable = ['carteira_id', 'tipo', 'arquivo'];
+    protected $fillable = ['solicitacao_id', 'tipo', 'arquivo'];
 
-    public function carteira()
+    public function solicitacao()
     {
-        return $this->belongsTo(Carteira::class);
+        return $this->belongsTo(SolicitacaoCarteira::class, 'solicitacao_id');
     }
 
     public function getTipoNomeAttribute(): string

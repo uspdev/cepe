@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Carteiras;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\CarteiraRequest;
+use App\Models\SolicitacaoCarteira;
 use App\Models\Carteira;
 use App\Services\CarteiraService;
 use Carbon\Carbon;
@@ -18,16 +19,30 @@ class MinhasCarteirasController extends Controller
 
     public function index(Request $request)
     {
+        $user = $request->user();
+        $carteirasRenovaveis = Carteira::where('user_id', $user->id)
+            ->orWhereHas('solicitacoes', fn ($q) => $q->where('solicitante_id', $user->id))
+            ->get()
+            ->filter(fn (Carteira $carteira) => $this->carteiras->podeRenovar($user, $carteira))
+            ->values();
+
         return view('minhas-carteiras.index', [
-            'carteiras' => $request->user()->carteirasSolicitadas()->latest()->get(),
-            'categorias' => $this->carteiras->categoriasPermitidas($request->user()),
+            'solicitacoes' => $user->carteirasSolicitadas()->with('carteira')->latest()->get(),
+            'categorias' => $this->carteiras->categoriasPermitidas($user),
+            'carteirasRenovaveis' => $carteirasRenovaveis,
         ]);
     }
 
     public function create(Request $request)
     {
         $categorias = $this->carteiras->categoriasPermitidas($request->user());
-        $categoria = $request->query('categoria', array_key_first($categorias));
+        $renovar = null;
+        if ($request->filled('renovar')) {
+            $renovar = Carteira::findOrFail($request->query('renovar'));
+            abort_unless($this->carteiras->podeRenovar($request->user(), $renovar), 404);
+            $categorias[$renovar->categoria] = config("cepe.carteiras.categorias.{$renovar->categoria}");
+        }
+        $categoria = $renovar?->categoria ?? $request->query('categoria', array_key_first($categorias));
         abort_unless(isset($categorias[$categoria]), 404);
 
         $config = config("cepe.carteiras.categorias.{$categoria}");
@@ -40,6 +55,7 @@ class MinhasCarteirasController extends Controller
         return view('minhas-carteiras.create', [
             'categorias' => $categorias,
             'categoria' => $categoria,
+            'renovar' => $renovar,
             'config' => $config,
             'comuns' => $this->carteiras->documentosExigidos($categoria, null),
             'porParentesco' => $porParentesco,
@@ -57,33 +73,36 @@ class MinhasCarteirasController extends Controller
         ] : [];
 
         $arquivos = array_intersect_key($request->file('documentos', []), array_flip($request->tiposDocumento()));
-        $carteira = $this->carteiras->solicitar($request->user(), $request->categoria(), $beneficiario, $arquivos);
+        $renovar = $request->validated('carteira_id')
+            ? Carteira::findOrFail($request->validated('carteira_id'))
+            : null;
+        $solicitacao = $this->carteiras->solicitar($request->user(), $request->categoria(), $beneficiario, $arquivos, $renovar);
 
-        return redirect("/minhas-carteiras/{$carteira->id}")->with('alert-success', 'Solicitação enviada e aguardando análise da SRU.');
+        return redirect("/minhas-carteiras/{$solicitacao->id}")->with('alert-success', 'Solicitação enviada e aguardando análise da SRU.');
     }
 
-    public function show(Carteira $carteira)
+    public function show(SolicitacaoCarteira $solicitacao)
     {
-        Gate::authorize('view', $carteira);
-        $carteira->load('documentos', 'analisador');
+        Gate::authorize('view', $solicitacao);
+        $solicitacao->load('documentos', 'analisador', 'carteira');
 
         return view('minhas-carteiras.show', [
-            'carteira' => $carteira,
+            'solicitacao' => $solicitacao,
             'tipos' => [
-                ...$this->carteiras->documentosExigidos($carteira->categoria, $carteira->parentesco),
-                ...$this->carteiras->documentosOpcionais($carteira->categoria),
+                ...$this->carteiras->documentosExigidos($solicitacao->categoria, $solicitacao->parentesco),
+                ...$this->carteiras->documentosOpcionais($solicitacao->categoria),
             ],
         ]);
     }
 
     /** Reenvio de documentos quando a SRU marca a documentação como pendente. */
-    public function reenviar(Request $request, Carteira $carteira)
+    public function reenviar(Request $request, SolicitacaoCarteira $solicitacao)
     {
-        Gate::authorize('reenviar', $carteira);
+        Gate::authorize('reenviar', $solicitacao);
 
         $tipos = [
-            ...$this->carteiras->documentosExigidos($carteira->categoria, $carteira->parentesco),
-            ...$this->carteiras->documentosOpcionais($carteira->categoria),
+            ...$this->carteiras->documentosExigidos($solicitacao->categoria, $solicitacao->parentesco),
+            ...$this->carteiras->documentosOpcionais($solicitacao->categoria),
         ];
         $rules = ['documentos' => 'required|array'];
         foreach ($tipos as $tipo) {
@@ -91,18 +110,9 @@ class MinhasCarteirasController extends Controller
         }
         $request->validate($rules, ['documentos.required' => 'Envie ao menos um documento.']);
 
-        $this->carteiras->guardarDocumentos($carteira, array_intersect_key($request->file('documentos', []), array_flip($tipos)));
-        $carteira->update(['status' => 'em_analise']);
+        $this->carteiras->guardarDocumentos($solicitacao, array_intersect_key($request->file('documentos', []), array_flip($tipos)));
+        $solicitacao->update(['status' => 'em_analise']);
 
-        return redirect("/minhas-carteiras/{$carteira->id}")->with('alert-success', 'Documentos reenviados para análise.');
-    }
-
-    /** Dependente com conta própria vincula a carteira ao seu perfil informando o número. */
-    public function vincular(Request $request)
-    {
-        $dados = $request->validate(['numero' => 'required|digits_between:1,20']);
-        $this->carteiras->vincular($request->user(), $dados['numero']);
-
-        return redirect('/perfil')->with('alert-success', 'Carteira CEPEUSP vinculada ao seu perfil.');
+        return redirect("/minhas-carteiras/{$solicitacao->id}")->with('alert-success', 'Documentos reenviados para análise.');
     }
 }

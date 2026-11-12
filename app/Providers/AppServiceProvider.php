@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Models\User;
+use App\Models\SolicitacaoCarteira;
 use App\Policies\PerfilPolicy;
+use App\Policies\SolicitacaoCarteiraPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Gate::policy(User::class, PerfilPolicy::class);
+        Gate::policy(SolicitacaoCarteira::class, SolicitacaoCarteiraPolicy::class);
 
         // Permissions da aplicação (guard web): o Spatie já libera quem as tem (via role);
         // aqui o `admin` da senhaunica-socialite passa em todas.
