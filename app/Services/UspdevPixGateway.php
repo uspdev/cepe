@@ -109,6 +109,9 @@ class UspdevPixGateway implements PixGateway
 
     private function url(string $path): string
     {
-        return rtrim((string) config('services.wspix.base_url'), '/').$path;
+        $baseUrl = config('services.wspix.dev') 
+            ? 'https://api-dev.portalservicos.usp.br/wspix/api'
+            : 'https://uspdigital.usp.br/wspix/api';
+        return rtrim($baseUrl, '/').$path;
     }
 }
