@@ -128,7 +128,7 @@
                             <label class="form-label fw-bold font-weight-bold">Perfil de inscrição</label>
                             @if($minhaFila?->perfil)
                                 {{-- Perfil travado no escolhido ao entrar na fila --}}
-                                <input type="hidden" name="perfil" value="{{ $minhaFila->perfil }}">
+                                <input type="hidden" name="perfil" value="{{ $minhaFila->perfil }}" data-valor="{{ $perfisElegiveis[$minhaFila->perfil]['valor'] ?? 0 }}">
                                 <p class="mb-0">
                                     {{ config('cepe.perfil.' . $minhaFila->perfil, $minhaFila->perfil) }}
                                     @isset($perfisElegiveis[$minhaFila->perfil])
@@ -140,7 +140,7 @@
                                 @php
                                     $dados = reset($perfisLivres);
                                 @endphp
-                                <input type="hidden" name="perfil" value="{{ key($perfisLivres) }}">
+                                <input type="hidden" name="perfil" value="{{ key($perfisLivres) }}" data-valor="{{ $dados['valor'] ?? 0 }}">
                                 <p class="mb-0">
                                     {{ $dados['label'] }}
                                     @include('inscricoes.partials.preco', ['dados' => $dados])
@@ -148,7 +148,7 @@
                             @else
                                 @foreach($perfisLivres as $perfil => $dados)
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="perfil" id="perfil_{{ $perfil }}" value="{{ $perfil }}" {{ old('perfil') === $perfil ? 'checked' : '' }} required>
+                                        <input class="form-check-input" type="radio" name="perfil" id="perfil_{{ $perfil }}" value="{{ $perfil }}" data-valor="{{ $dados['valor'] ?? 0 }}" {{ old('perfil') === $perfil ? 'checked' : '' }} required>
                                         <label class="form-check-label" for="perfil_{{ $perfil }}">
                                             {{ $dados['label'] }}
                                             @include('inscricoes.partials.preco', ['dados' => $dados])
@@ -165,24 +165,46 @@
                             $metodosPagamento = array_values(array_intersect(['pix', 'boleto'], $formasPagamento));
                         @endphp
                         @if($metodosPagamento !== [] && $temPerfilPago)
-                            <div class="mb-4">
+                            <div id="metodos-pagamento" class="mb-4">
                                 <label class="form-label fw-bold font-weight-bold">Forma de pagamento</label>
                                 @foreach($metodosPagamento as $metodo)
                                     <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="metodo_pagamento" id="metodo_{{ $metodo }}" value="{{ $metodo }}" {{ old('metodo_pagamento') === $metodo || (!old('metodo_pagamento') && count($metodosPagamento) === 1) ? 'checked' : '' }} required>
+                                        <input class="form-check-input" type="radio" name="metodo_pagamento" id="metodo_{{ $metodo }}" value="{{ $metodo }}" {{ old('metodo_pagamento') === $metodo || (!old('metodo_pagamento') && count($metodosPagamento) === 1) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="metodo_{{ $metodo }}">{{ $metodo === 'pix' ? 'Pix' : 'Boleto bancário' }}</label>
                                     </div>
                                 @endforeach
                                 @if(in_array('pix', $metodosPagamento, true))
                                     <div class="small text-muted mt-2">O Pix expira em até 3 horas e a confirmação é automática.</div>
                                 @endif
-                                @if(in_array('boleto', $metodosPagamento, true) && in_array($atividade->tipo, config('cepe.grupos_catalogo.cursos'), true) && collect($perfisLivres)->contains(fn ($dados) => ($dados['valor'] ?? 0) > config('cepe.pagamentos.parcelamento_cursos.valor_minimo')))
+                                @if(in_array('boleto', $metodosPagamento, true) && in_array($atividade->tipo, config('cepe.grupos_catalogo.cursos'), true) && collect($perfisLivres)->contains(fn ($dados) => ($dados['valor'] ?? 0) >= config('cepe.pagamentos.parcelamento_cursos.valor_minimo')))
                                     <div class="small text-muted mt-2">
-                                        Ao escolher boleto, cursos acima de R$ {{ number_format(config('cepe.pagamentos.parcelamento_cursos.valor_minimo'), 2, ',', '.') }}
-                                        são cobrados em três boletos mensais sequenciais. A matrícula é ativada após a confirmação da primeira parcela.
+                                        Em cursos a partir de R$ {{ number_format(config('cepe.pagamentos.parcelamento_cursos.valor_minimo'), 2, ',', '.') }},
+                                        você pode escolher pagar à vista ou parcelar em {{ (int) config('cepe.pagamentos.parcelamento_cursos.parcelas', 3) }} boletos mensais.
+                                        A matrícula é ativada após a confirmação da primeira parcela.
                                     </div>
                                 @endif
                             </div>
+                            <fieldset id="opcoes-parcelamento" class="mb-4 d-none"
+                                      data-curso="{{ in_array($atividade->tipo, config('cepe.grupos_catalogo.cursos'), true) ? '1' : '0' }}"
+                                      data-minimo="{{ (int) config('cepe.pagamentos.parcelamento_cursos.valor_minimo', 300) }}"
+                                      disabled>
+                                <legend class="form-label fw-bold font-weight-bold">Opções de parcelamento</legend>
+                                <p class="small text-muted">
+                                    Escolha pagar à vista ou em boletos mensais sem juros.
+                                </p>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="parcelas" id="parcelas_1" value="1" @checked(old('parcelas') === '1')>
+                                    <label class="form-check-label" for="parcelas_1"><span data-parcelas-label="1">1x à vista</span></label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="parcelas" id="parcelas_2" value="2" @checked(old('parcelas') === '2')>
+                                    <label class="form-check-label" for="parcelas_2"><span data-parcelas-label="2">2x</span></label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="parcelas" id="parcelas_3" value="3" @checked(old('parcelas') === '3')>
+                                    <label class="form-check-label" for="parcelas_3"><span data-parcelas-label="3">3x</span></label>
+                                </div>
+                            </fieldset>
                         @endif
 
                         <div class="mb-4">
@@ -218,6 +240,64 @@
     @parent
     <script>
         $(function () {
+            var $formularioInscricao = $('#secao-formulario-inscricao form');
+            var $opcoesParcelamento = $formularioInscricao.find('#opcoes-parcelamento');
+            var $parcelas = $opcoesParcelamento.find('input[name="parcelas"]');
+            var $metodosPagamento = $formularioInscricao.find('#metodos-pagamento');
+            var $metodos = $metodosPagamento.find('input[name="metodo_pagamento"]');
+
+            function atualizarOpcoesPagamento() {
+                var $perfil = $formularioInscricao.find('input[name="perfil"]:checked');
+                if (! $perfil.length) {
+                    $perfil = $formularioInscricao.find('input[name="perfil"]').first();
+                }
+
+                var valor = Number($perfil.data('valor')) || 0;
+                var valorPago = valor > 0;
+                var valorCentavos = Math.round(valor * 100);
+                var metodo = $metodos.filter(':checked').val();
+                var parcelamentoDisponivel = valorPago
+                    && metodo === 'boleto'
+                    && $opcoesParcelamento.data('curso') === 1
+                    && valor >= Number($opcoesParcelamento.data('minimo'));
+
+                $metodos.prop('disabled', ! valorPago).prop('required', valorPago);
+                $metodosPagamento.toggleClass('d-none', ! valorPago);
+                if (! valorPago) {
+                    $metodos.prop('checked', false);
+                }
+
+                $opcoesParcelamento.toggleClass('d-none', ! parcelamentoDisponivel);
+                $opcoesParcelamento.prop('disabled', ! parcelamentoDisponivel);
+                $parcelas.prop('required', parcelamentoDisponivel);
+                if (! parcelamentoDisponivel) {
+                    $parcelas.prop('checked', false);
+                } else {
+                    $opcoesParcelamento.find('[data-parcelas-label]').each(function () {
+                        var totalParcelas = Number($(this).data('parcelas-label'));
+                        var valorBase = Math.floor(valorCentavos / totalParcelas);
+                        var resto = valorCentavos % totalParcelas;
+                        var grupos = [];
+                        var maiores = resto;
+                        var menores = totalParcelas - resto;
+
+                        if (maiores) {
+                            grupos.push(maiores + 'x de R$ ' + ( (valorBase + 1) / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        }
+                        if (menores) {
+                            grupos.push(menores + 'x de R$ ' + (valorBase / 100).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}));
+                        }
+
+                        $(this).text(totalParcelas === 1
+                            ? grupos.join(' + ') + ' (à vista)'
+                            : grupos.join(' + ') + ' (sem juros)');
+                    });
+                }
+            }
+
+            $formularioInscricao.on('change', 'input[name="perfil"], input[name="metodo_pagamento"]', atualizarOpcoesPagamento);
+            atualizarOpcoesPagamento();
+
             var $caixa = $('#caixa-fila');
             var statusUrl = $caixa.data('status-url');
             var estado = $caixa.data('fila-state'); // fora | aguardando | vez

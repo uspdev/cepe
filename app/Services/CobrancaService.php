@@ -20,11 +20,25 @@ class CobrancaService
 {
     public function __construct(private BoletoGateway $boletoGateway, private PixGateway $pixGateway) {}
 
-    public function emitirPrimeira(Matricula $matricula, string $metodo = Cobranca::BOLETO): Cobranca
+    public function emitirPrimeira(Matricula $matricula, string $metodo = Cobranca::BOLETO, int $parcelas = 1): Cobranca
     {
         $matricula->loadMissing(['user.perfil', 'turma.oferecimento.atividade']);
+        $tipo = $matricula->turma->oferecimento->atividade->tipo;
 
-        return $this->emitir($matricula, 1, $this->totalParcelasParaMetodo($matricula, $metodo), metodo: $metodo);
+        if (! self::parcelamentoDisponivel($tipo, $metodo, (int) $matricula->valor)) {
+            $parcelas = 1;
+        } elseif (! in_array($parcelas, [1, 2, 3], true)) {
+            throw ValidationException::withMessages(['parcelas' => 'Selecione uma quantidade de parcelas válida.']);
+        }
+
+        return $this->emitir($matricula, 1, $parcelas, metodo: $metodo);
+    }
+
+    public static function parcelamentoDisponivel(string $tipo, string $metodo, int $valorReais): bool
+    {
+        return $metodo === Cobranca::BOLETO
+            && in_array($tipo, config('cepe.grupos_catalogo.cursos'), true)
+            && $valorReais >= (int) config('cepe.pagamentos.parcelamento_cursos.valor_minimo', 300);
     }
 
     public function emitirProxima(Cobranca $anterior): ?Cobranca
@@ -417,18 +431,6 @@ class CobrancaService
                 ->copy()
                 ->addSeconds((int) config('cepe.pagamentos.pix.expiracao_segundos', 10800))
                 ->setTimezone(config('app.timezone'));
-    }
-
-    private function totalParcelasParaMetodo(Matricula $matricula, string $metodo): int
-    {
-        $tipo = $matricula->turma->oferecimento->atividade->tipo;
-        $regra = config('cepe.pagamentos.parcelamento_cursos');
-
-        return $metodo === Cobranca::BOLETO
-            && in_array($tipo, config('cepe.grupos_catalogo.cursos'), true)
-            && $matricula->valor > $regra['valor_minimo']
-            ? (int) $regra['parcelas']
-            : 1;
     }
 
     private function valorParcelaCentavos(int $valorReais, int $parcela, int $total): int

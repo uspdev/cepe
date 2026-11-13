@@ -64,7 +64,11 @@ class InscricaoController extends Controller
 
         if ($matricula->status === Matricula::AGUARDANDO_PAGAMENTO) {
             try {
-                $cobrancas->emitirPrimeira($matricula, $request->metodo_pagamento);
+                $cobrancas->emitirPrimeira(
+                    $matricula,
+                    $request->metodo_pagamento,
+                    (int) $request->input('parcelas', 1),
+                );
             } catch (PagamentoIntegracaoException $e) {
                 if (! $e->resultadoIndeterminado) {
                     $cobrancas->cancelarMatriculaSemPagamento($matricula);

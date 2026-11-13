@@ -101,15 +101,21 @@ class BoletoInscricaoTest extends TestCase
         return $cpf;
     }
 
-    private function inscrever(User $user, Turma $turma, string $metodo = 'boleto'): void
+    private function inscrever(User $user, Turma $turma, string $metodo = 'boleto', ?int $parcelas = null): void
     {
         $this->actingAs($user)->get("/inscricoes/{$turma->id}")->assertOk();
-        $this->actingAs($user)->post("/inscricoes/{$turma->id}", [
+        $dados = [
             'perfil' => 'tax_in',
             'metodo_pagamento' => $metodo,
             'image_use_authorization' => 'autoriza',
             'regulamento' => '1',
-        ])->assertRedirect('/minhas-inscricoes')->assertSessionHasNoErrors();
+        ];
+        if ($parcelas !== null) {
+            $dados['parcelas'] = (string) $parcelas;
+        }
+
+        $this->actingAs($user)->post("/inscricoes/{$turma->id}", $dados)
+            ->assertRedirect('/minhas-inscricoes')->assertSessionHasNoErrors();
     }
 
     public function test_inscricao_paga_reserva_vaga_e_emite_boleto(): void
@@ -139,7 +145,7 @@ class BoletoInscricaoTest extends TestCase
     {
         $turma = $this->turma(301);
         $user = $this->usuario();
-        $this->inscrever($user, $turma);
+        $this->inscrever($user, $turma, 'boleto', 3);
 
         $matricula = Matricula::firstOrFail();
         $primeira = $matricula->cobrancas()->firstOrFail();
@@ -166,15 +172,45 @@ class BoletoInscricaoTest extends TestCase
         $this->assertSame(30100, $matricula->cobrancas()->sum('valor_centavos'));
     }
 
-    public function test_curso_ate_trezentos_emite_boleto_unico(): void
+    public function test_boleto_a_partir_de_trezentos_exige_escolha_e_respeita_a_opcao(): void
     {
-        $turma = $this->turma(300);
-        $user = $this->usuario();
-        $this->inscrever($user, $turma);
+        $aVista = $this->turma(300);
+        $userAVista = $this->usuario();
+        $this->actingAs($userAVista)->get("/inscricoes/{$aVista->id}")
+            ->assertOk()
+            ->assertSee('1x à vista')
+            ->assertSee('2x')
+            ->assertSee('3x');
+        $this->actingAs($userAVista)->post("/inscricoes/{$aVista->id}", [
+            'perfil' => 'tax_in',
+            'metodo_pagamento' => 'boleto',
+            'image_use_authorization' => 'autoriza',
+            'regulamento' => '1',
+        ])->assertSessionHasErrors('parcelas');
+        $this->inscrever($userAVista, $aVista, 'boleto', 1);
 
-        $cobranca = Cobranca::firstOrFail();
-        $this->assertSame(1, $cobranca->total_parcelas);
-        $this->assertSame(30000, $cobranca->valor_centavos);
+        $cobrancaAVista = Cobranca::whereHas('matricula', fn ($q) => $q->where('user_id', $userAVista->id))->firstOrFail();
+        $this->assertSame(1, $cobrancaAVista->total_parcelas);
+        $this->assertSame(30000, $cobrancaAVista->valor_centavos);
+
+        $parcelado = $this->turma(300);
+        $userParcelado = $this->usuario();
+        $this->inscrever($userParcelado, $parcelado, 'boleto', 3);
+        $cobrancaParcelada = Cobranca::whereHas('matricula', fn ($q) => $q->where('user_id', $userParcelado->id))->firstOrFail();
+        $this->assertSame(3, $cobrancaParcelada->total_parcelas);
+
+        $duasParcelas = $this->turma(301);
+        $userDuasParcelas = $this->usuario();
+        $this->inscrever($userDuasParcelas, $duasParcelas, 'boleto', 2);
+        $cobrancaDuasParcelas = Cobranca::whereHas('matricula', fn ($q) => $q->where('user_id', $userDuasParcelas->id))->firstOrFail();
+        $this->assertSame(2, $cobrancaDuasParcelas->total_parcelas);
+        $this->assertSame(15050, $cobrancaDuasParcelas->valor_centavos);
+
+        $evento = $this->turma(350, 'eventos');
+        $userEvento = $this->usuario();
+        $this->inscrever($userEvento, $evento);
+        $cobrancaEvento = Cobranca::whereHas('matricula', fn ($q) => $q->where('user_id', $userEvento->id))->firstOrFail();
+        $this->assertSame(1, $cobrancaEvento->total_parcelas);
     }
 
     public function test_voltausp_e_voltinhausp_usam_configuracao_financeira_de_eventos(): void
@@ -288,7 +324,7 @@ class BoletoInscricaoTest extends TestCase
     {
         $turma = $this->turma(321);
         $user = $this->usuario(20);
-        $this->inscrever($user, $turma);
+        $this->inscrever($user, $turma, 'boleto', 3);
 
         $matricula = Matricula::firstOrFail();
         $primeira = $matricula->cobrancas()->firstOrFail();
@@ -308,7 +344,7 @@ class BoletoInscricaoTest extends TestCase
     {
         $turma = $this->turma(321);
         $user = $this->usuario(credito: 20);
-        $this->inscrever($user, $turma);
+        $this->inscrever($user, $turma, 'boleto', 3);
 
         $matricula = Matricula::firstOrFail();
         $primeira = $matricula->cobrancas()->firstOrFail();

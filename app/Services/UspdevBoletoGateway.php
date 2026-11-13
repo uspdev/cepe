@@ -17,7 +17,7 @@ class UspdevBoletoGateway implements BoletoGateway
         try {
             $retorno = $this->cliente()->gerar($dados);
         } catch (BoletoIntegracaoException $e) {
-            throw dd($e);
+            throw $e;
         } catch (Throwable) {
             throw new BoletoIntegracaoException('Não foi possível confirmar a emissão do boleto.', true);
         }
