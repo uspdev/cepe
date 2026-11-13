@@ -48,6 +48,9 @@
                             -
                         @endforelse
                     </p>
+                    @if(in_array('pix', $formasPagamento, true))
+                        <div class="small text-muted mt-1">Pix: cobrança única com validade de até 3 horas. O parcelamento de cursos acima de R$ 300,00 é exclusivo para boleto.</div>
+                    @endif
                 </div>
 
                 <div class="col-md-4 mb-3">

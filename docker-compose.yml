@@ -16,6 +16,21 @@ services:
       HOME: /tmp
     user: "${UID:-1000}:${GID:-1000}"
 
+  scheduler:
+    image: cepe:latest
+    container_name: cepe_scheduler
+    restart: always
+    command: php artisan schedule:work
+    depends_on:
+      - mariadb
+    networks:
+      - cepe-network
+    volumes:
+      - ./:/var/www/html
+    environment:
+      HOME: /tmp
+    user: "${UID:-1000}:${GID:-1000}"
+
   mariadb:
     image: mariadb:11
     container_name: cepe_mariadb

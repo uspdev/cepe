@@ -1,8 +1,10 @@
 @extends('layout')
 
 @section('content')
-@php($oferecimento = $turma->oferecimento)
-@php($atividade = $oferecimento->atividade)
+@php
+    $oferecimento = $turma->oferecimento;
+    $atividade = $oferecimento->atividade;
+@endphp
 <div class="container py-4">
     <div class="card shadow-sm col-md-8 mx-auto">
         <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
@@ -62,7 +64,9 @@
                                             </div>
                                         @endforeach
                                     @else
-                                        @php($dados = reset($perfisElegiveis))
+                                        @php
+                                            $dados = reset($perfisElegiveis);
+                                        @endphp
                                         <input type="hidden" name="perfil" value="{{ key($perfisElegiveis) }}">
                                         <p class="mb-0">
                                             {{ $dados['label'] }}
@@ -133,7 +137,9 @@
                                 </p>
                             @elseif(count($perfisLivres) === 1)
                                 {{-- Único perfil disponível: exibe fixo, sem escolha --}}
-                                @php($dados = reset($perfisLivres))
+                                @php
+                                    $dados = reset($perfisLivres);
+                                @endphp
                                 <input type="hidden" name="perfil" value="{{ key($perfisLivres) }}">
                                 <p class="mb-0">
                                     {{ $dados['label'] }}
@@ -152,6 +158,32 @@
                                 @endforeach
                             @endif
                         </div>
+
+                        @php
+                            $formasPagamento = $oferecimento->formas_pagamento;
+                            $temPerfilPago = collect($perfisLivres)->contains(fn ($dados) => ($dados['valor'] ?? 0) > 0);
+                            $metodosPagamento = array_values(array_intersect(['pix', 'boleto'], $formasPagamento));
+                        @endphp
+                        @if($metodosPagamento !== [] && $temPerfilPago)
+                            <div class="mb-4">
+                                <label class="form-label fw-bold font-weight-bold">Forma de pagamento</label>
+                                @foreach($metodosPagamento as $metodo)
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="metodo_pagamento" id="metodo_{{ $metodo }}" value="{{ $metodo }}" {{ old('metodo_pagamento') === $metodo || (!old('metodo_pagamento') && count($metodosPagamento) === 1) ? 'checked' : '' }} required>
+                                        <label class="form-check-label" for="metodo_{{ $metodo }}">{{ $metodo === 'pix' ? 'Pix' : 'Boleto bancário' }}</label>
+                                    </div>
+                                @endforeach
+                                @if(in_array('pix', $metodosPagamento, true))
+                                    <div class="small text-muted mt-2">O Pix expira em até 3 horas e a confirmação é automática.</div>
+                                @endif
+                                @if(in_array('boleto', $metodosPagamento, true) && in_array($atividade->tipo, config('cepe.grupos_catalogo.cursos'), true) && collect($perfisLivres)->contains(fn ($dados) => ($dados['valor'] ?? 0) > config('cepe.pagamentos.parcelamento_cursos.valor_minimo')))
+                                    <div class="small text-muted mt-2">
+                                        Ao escolher boleto, cursos acima de R$ {{ number_format(config('cepe.pagamentos.parcelamento_cursos.valor_minimo'), 2, ',', '.') }}
+                                        são cobrados em três boletos mensais sequenciais. A matrícula é ativada após a confirmação da primeira parcela.
+                                    </div>
+                                @endif
+                            </div>
+                        @endif
 
                         <div class="mb-4">
                             <label class="form-label fw-bold font-weight-bold">Autorização de uso de imagem</label>

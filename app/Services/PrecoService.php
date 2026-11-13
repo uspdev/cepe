@@ -90,7 +90,7 @@ class PrecoService
 
     private function temCursoNoPeriodo(User $user, Turma $turma): bool
     {
-        return Matricula::ativas()
+        return Matricula::where('status', Matricula::MATRICULADA)
             ->where('user_id', $user->id)
             ->where('periodo_oferecimento', $turma->oferecimento->periodo)
             ->whereHas('turma.oferecimento.atividade', fn ($q) => $q->whereIn('tipo', config('cepe.grupos_catalogo.cursos')))

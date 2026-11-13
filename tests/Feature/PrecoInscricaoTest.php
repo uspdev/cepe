@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Atividade;
+use App\Models\Carteira;
 use App\Models\Matricula;
 use App\Models\Oferecimento;
 use App\Models\Perfil;
@@ -31,7 +32,7 @@ class PrecoInscricaoTest extends TestCase
     private function turma(string $tipo = 'semestral', array $taxas = ['tax_in' => 50], string $periodo = 'usp'): Turma
     {
         $atividade = Atividade::create(['nome' => 'Atividade', 'descricao' => 'd', 'tipo' => $tipo, 'status' => 'ativo']);
-        $oferecimento = Oferecimento::create(['atividade_id' => $atividade->id, 'periodo' => '01-2026', 'pagamento' => 'pix']);
+        $oferecimento = Oferecimento::create(['atividade_id' => $atividade->id, 'periodo' => '01-2026', 'pagamento' => serialize(['boleto'])]);
         PeriodoOferecimento::create(['oferecimento_id' => $oferecimento->id, 'perfil' => $periodo, 'inicio' => now()->subDay(), 'fim' => now()->addDay()]);
 
         $turma = Turma::create(['oferecimento_id' => $oferecimento->id]);
@@ -50,7 +51,7 @@ class PrecoInscricaoTest extends TestCase
             'user_id' => $user->id,
             'sexo' => 'f',
             'data_nascimento' => '1990-05-10',
-            'cpf' => '5299822472' . $user->id,
+            'cpf' => $this->cpfValido($user->id),
             'rg' => '123456789',
             'telefone' => '1134567890',
             'emergencia_nome' => 'Maria',
@@ -70,7 +71,7 @@ class PrecoInscricaoTest extends TestCase
     private function conveniado(): User
     {
         $usuario = $this->usuario();
-        \App\Models\Carteira::create([
+        Carteira::create([
             'user_id' => $usuario->id, 'categoria' => 'conveniado',
             'nome' => $usuario->name, 'status' => 'ativa', 'numero' => '91631234',
             'validade_inicio' => now()->toDateString(), 'validade_fim' => now()->addYear()->toDateString(),
@@ -86,7 +87,21 @@ class PrecoInscricaoTest extends TestCase
 
     private function payload(string $perfil = 'tax_in'): array
     {
-        return ['perfil' => $perfil, 'image_use_authorization' => 'autoriza', 'regulamento' => '1'];
+        return ['perfil' => $perfil, 'metodo_pagamento' => 'boleto', 'image_use_authorization' => 'autoriza', 'regulamento' => '1'];
+    }
+
+    private function cpfValido(int $id): string
+    {
+        $cpf = str_pad((string) $id, 9, '0', STR_PAD_LEFT);
+        for ($t = 9; $t < 11; $t++) {
+            $soma = 0;
+            for ($i = 0; $i < $t; $i++) {
+                $soma += (int) $cpf[$i] * (($t + 1) - $i);
+            }
+            $cpf .= (string) (((10 * $soma) % 11) % 10);
+        }
+
+        return $cpf;
     }
 
     private function matricular(User $user, Turma $turma, string $perfil = 'tax_in'): Matricula

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Model;
 
 class Oferecimento extends Model
 {
@@ -26,7 +26,10 @@ class Oferecimento extends Model
     {
         return Attribute::get(function () {
             $pagamento = $this->attributes['pagamento'] ?? null;
-            $dados = $pagamento ? @unserialize($pagamento) : null;
+            if (in_array($pagamento, ['pix', 'boleto', 'gratuito'], true)) {
+                return [$pagamento];
+            }
+            $dados = $pagamento ? @unserialize($pagamento, ['allowed_classes' => false]) : null;
 
             return is_array($dados) ? $dados : [];
         });

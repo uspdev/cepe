@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'wsboleto' => [
+        'username' => env('WS_USERNAME'),
+        'password' => env('WS_PASSWORD'),
+        'dev' => env('WS_DEV', true),
+    ],
+    'wspix' => [
+        'username' => env('WS_USERNAME'),
+        'password' => env('WS_PASSWORD'),
+        'base_url' => env('WSPIX_BASE_URL', 'https://uspdigital.usp.br/wspix/api'),
+    ],
+
 ];

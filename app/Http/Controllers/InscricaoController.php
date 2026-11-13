@@ -2,16 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PagamentoIntegracaoException;
 use App\Http\Requests\InscricaoRequest;
+use App\Models\Matricula;
 use App\Models\Turma;
+use App\Services\CobrancaService;
 use App\Services\InscricaoService;
 use Illuminate\Validation\ValidationException;
 
 class InscricaoController extends Controller
 {
-    public function __construct(private InscricaoService $inscricoes)
-    {
-    }
+    public function __construct(private InscricaoService $inscricoes) {}
 
     public function create(Turma $turma)
     {
@@ -27,7 +28,7 @@ class InscricaoController extends Controller
         return view('inscricoes.create', [
             'turma' => $turma,
             'erros' => $erros,
-            'perfisElegiveis' => $this->inscricoes->perfisElegiveis($turma, $user),
+            'perfisElegiveis' => $this->inscricoes->perfisComPagamentoDisponivel($turma, $user),
             'perfisLivres' => $this->inscricoes->perfisLivres($turma, $user, $fila),
             'minhaFila' => $fila,
             'posicao' => $fila?->posicao,
@@ -36,7 +37,7 @@ class InscricaoController extends Controller
         ]);
     }
 
-    public function store(InscricaoRequest $request, Turma $turma)
+    public function store(InscricaoRequest $request, Turma $turma, CobrancaService $cobrancas)
     {
         $user = $request->user();
         $fila = $this->inscricoes->filaAtiva($turma, $user) ?? $this->inscricoes->entrarNaFila($turma, $user);
@@ -59,11 +60,36 @@ class InscricaoController extends Controller
             'image_use_authorization' => $request->image_use_authorization,
             'regulamento_aceito' => 'sim',
             'regulamento_ip' => $request->ip(),
-        ]);
+        ], $request->metodo_pagamento);
+
+        if ($matricula->status === Matricula::AGUARDANDO_PAGAMENTO) {
+            try {
+                $cobrancas->emitirPrimeira($matricula, $request->metodo_pagamento);
+            } catch (PagamentoIntegracaoException $e) {
+                if (! $e->resultadoIndeterminado) {
+                    $cobrancas->cancelarMatriculaSemPagamento($matricula);
+                    throw ValidationException::withMessages([
+                        'metodo_pagamento' => 'Não foi possível emitir a cobrança. Tente novamente; sua vaga não foi confirmada.',
+                    ]);
+                }
+
+                $fila->update(['status' => false, 'perfil' => $perfil]);
+
+                return redirect('/minhas-inscricoes')
+                    ->with('alert-warning', 'A emissão do pagamento está sendo verificada. Consulte Minhas Inscrições antes de tentar novamente.');
+            }
+        }
 
         $fila->update(['status' => false, 'perfil' => $perfil]);
 
         return redirect('/minhas-inscricoes')
-            ->with('alert-success', 'Inscrição realizada com sucesso!');
+            ->with(
+                'alert-success',
+                $matricula->status === Matricula::AGUARDANDO_PAGAMENTO
+                    ? ($request->metodo_pagamento === 'pix'
+                        ? 'Pix gerado. Consulte Minhas Inscrições para pagar.'
+                        : 'Boleto emitido. Consulte Minhas Inscrições para pagar.')
+                    : 'Inscrição realizada com sucesso!',
+            );
     }
 }

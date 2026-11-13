@@ -40,6 +40,9 @@
         <input type="checkbox" class="form-check-input" id="pagamento_boleto" name="formas_pagamento[]" value="boleto" {{ in_array('boleto', $formasPagamento) ? 'checked' : '' }}>
         <label class="form-check-label" for="pagamento_boleto">Boleto</label>
     </div>
+    @if(in_array('pix', $formasPagamento))
+        <div class="alert alert-info mt-2 mb-0">O Pix gera cobrança única, com validade de até 3 horas. O parcelamento de cursos acima de R$ 300,00 é exclusivo para boleto.</div>
+    @endif
 </div>
 <hr>
 

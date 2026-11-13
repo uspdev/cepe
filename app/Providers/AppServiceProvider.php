@@ -2,10 +2,16 @@
 
 namespace App\Providers;
 
-use App\Models\User;
+use App\Contracts\BoletoGateway;
+use App\Contracts\PixGateway;
+use App\Models\Cobranca;
 use App\Models\SolicitacaoCarteira;
+use App\Models\User;
+use App\Policies\CobrancaPolicy;
 use App\Policies\PerfilPolicy;
 use App\Policies\SolicitacaoCarteiraPolicy;
+use App\Services\UspdevBoletoGateway;
+use App\Services\UspdevPixGateway;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -16,7 +22,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(BoletoGateway::class, UspdevBoletoGateway::class);
+        $this->app->bind(PixGateway::class, UspdevPixGateway::class);
     }
 
     /**
@@ -26,6 +33,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Gate::policy(User::class, PerfilPolicy::class);
         Gate::policy(SolicitacaoCarteira::class, SolicitacaoCarteiraPolicy::class);
+        Gate::policy(Cobranca::class, CobrancaPolicy::class);
 
         // Permissions da aplicação (guard web): o Spatie já libera quem as tem (via role);
         // aqui o `admin` da senhaunica-socialite passa em todas.

@@ -73,6 +73,7 @@ return [
         'curso' => [],
     ],
     'status_matricula' => [
+        'aguardando_pagamento' => 'Aguardando pagamento',
         'matriculada' => 'Matriculada',
         'cancelada' => 'Cancelada',
     ],
@@ -97,13 +98,14 @@ return [
         'carteiras.analisar',
         'carteiras.vincular',
         'taxas.gerenciar',
+        'pagamentos.gerenciar',
         'perfis.gerenciar',
         'grupo.cursos',
         'grupo.eventos',
     ],
     // roles da aplicação (guard web) e suas permissions; sincronizadas por `php artisan cepe:papeis`
     'papeis' => [
-        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'carteiras.analisar', 'carteiras.vincular', 'taxas.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos', 'grupo.eventos'],
+        'sru' => ['perfis.gerenciar', 'atestados.analisar', 'carteiras.analisar', 'carteiras.vincular', 'taxas.gerenciar', 'pagamentos.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos', 'grupo.eventos'],
         'gestor-cursos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'frequencia.gerenciar', 'grupo.cursos'],
         'gestor-eventos' => ['atividades.gerenciar', 'inscricoes.gerenciar', 'grupo.eventos'],
         'avaliador-dermatologico' => ['atestados.dermatologico'],
@@ -363,5 +365,52 @@ return [
         'SE' => 'Sergipe',
         'SP' => 'São Paulo',
         'TO' => 'Tocantins',
+    ],
+    'pagamentos' => [
+        'parcelamento_cursos' => [
+            'valor_minimo' => 300,
+            'parcelas' => 3,
+        ],
+        'pix' => [
+            'expiracao_segundos' => 10800,
+            'consulta_lote' => 30,
+        ],
+        'consulta' => [
+            'horarios' => [9, 17],
+            'lote' => 100,
+            'reconciliar_canceladas_dias' => 7,
+        ],
+        'status' => [
+            'emitindo' => 'Emitindo',
+            'emitida' => 'Aguardando pagamento',
+            'paga' => 'Paga',
+            'vencida' => 'Vencida',
+            'cancelamento_pendente' => 'Cancelamento pendente',
+            'cancelada' => 'Cancelada',
+            'falha_emissao' => 'Falha na emissão',
+            'emissao_indeterminada' => 'Emissão em verificação',
+        ],
+        'codigoUnidadeDespesa' => 63,
+        'eventos' => [
+            'vencimento' => '1',
+            'codigoFonteRecurso' => 595,
+            'nomeFonte' => 'Taxas',
+            'nomeSubfonte' => 'Eventos Esportivos / Eventos CEPEUSP',
+            'estruturaHierarquica' => '\DA\CP\CEPEUSP\DVEDFIS-63',
+        ],
+        'cursos' => [
+            'vencimento' => 3,
+            'codigoFonteRecurso' => 558,
+            'nomeFonte' => 'Prestaçăo de Serviços',
+            'nomeSubfonte' => 'Cursos de Extensăo / Matrículas - Curso de Prática Esportiva',
+            'estruturaHierarquica' => '\DA\CP\CEPEUSP',
+        ],
+        'default' => [
+            'vencimento' => 3,
+            'codigoFonteRecurso' => 434,
+            'nomeFonte' => 'Taxas',
+            'nomeSubfonte' => 'Inscrição de Cursos',
+            'estruturaHierarquica' => '\DA\CP\CEPEUSP\DVADM-63\SVPGTOS-63',
+        ],
     ],
 ];

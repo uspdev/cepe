@@ -1,23 +1,24 @@
 <?php
 
+use App\Http\Controllers\Atestados\AtestadoController;
+use App\Http\Controllers\Atestados\MeusAtestadosController;
 use App\Http\Controllers\AtividadeController;
 use App\Http\Controllers\Auth\CadastroController;
 use App\Http\Controllers\Auth\LoginLocalController;
-use App\Http\Controllers\IndexController;
-use App\Http\Controllers\OferecimentoController;
-use App\Http\Controllers\TurmaController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Atestados\AtestadoController;
-use App\Http\Controllers\Atestados\MeusAtestadosController;
 use App\Http\Controllers\Carteiras\CarteiraController;
 use App\Http\Controllers\Carteiras\MinhasCarteirasController;
 use App\Http\Controllers\Carteiras\TaxaCarteiraController;
-use App\Http\Controllers\Perfil\PerfilController;
 use App\Http\Controllers\CatalogoController;
 use App\Http\Controllers\FilaController;
 use App\Http\Controllers\FrequenciaController;
+use App\Http\Controllers\IndexController;
 use App\Http\Controllers\InscricaoController;
 use App\Http\Controllers\MinhasInscricoesController;
+use App\Http\Controllers\OferecimentoController;
+use App\Http\Controllers\Pagamentos\BoletoController;
+use App\Http\Controllers\Perfil\PerfilController;
+use App\Http\Controllers\TurmaController;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', [IndexController::class, 'index'])->name('home');
 
@@ -74,6 +75,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/inscricoes/{turma}/fila/status', [FilaController::class, 'status'])->name('filas.status');
     Route::get('/minhas-inscricoes', [MinhasInscricoesController::class, 'index'])->name('minhas-inscricoes.index');
     Route::patch('/minhas-inscricoes/{matricula}/cancelar', [MinhasInscricoesController::class, 'cancelar'])->name('minhas-inscricoes.cancelar');
+    Route::get('/minhas-inscricoes/{matricula}/boletos/{cobranca}/pdf', [BoletoController::class, 'pdf'])->name('minhas-inscricoes.boletos.pdf');
     Route::post('/minhas-inscricoes/{matricula}/presenca', [FrequenciaController::class, 'checkin'])->name('minhas-inscricoes.presenca');
     Route::get('/minha-frequencia', [FrequenciaController::class, 'minhaFrequencia'])->name('minha-frequencia.index');
 
@@ -85,10 +87,8 @@ Route::middleware('auth')->group(function () {
     Route::patch('/turmas/{turma}/frequencia/{chamada}/data', [FrequenciaController::class, 'alterarData'])->name('frequencia.data');
 });
 
-
-
 Route::middleware('auth')->group(function () {
-    
+
     Route::get('/perfil', [PerfilController::class, 'edit'])->name('perfil.edit');
     Route::patch('/perfil', [PerfilController::class, 'update'])->name('perfil.update');
     Route::get('/usuarios', [PerfilController::class, 'index'])->name('usuarios.index');
@@ -124,4 +124,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/atestados/{atestado}/arquivo', [AtestadoController::class, 'arquivo']);
     Route::patch('/atestados/{atestado}/analise', [AtestadoController::class, 'analise']);
     Route::delete('/atestados/{atestado}', [AtestadoController::class, 'destroy']);
+
+    Route::get('/boletos', [BoletoController::class, 'index'])->name('boletos.index');
 });

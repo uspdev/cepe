@@ -71,6 +71,11 @@ $menu = [
         'can' => 'analisar-atestados',
     ],
     [
+        'text' => 'Pagamentos',
+        'url' => config('app.url').'/boletos',
+        'can' => 'pagamentos.gerenciar',
+    ],
+    [
         'text' => 'Carteiras',
         'submenu' => [
             ['text' => 'Solicitações', 'url' => config('app.url').'/carteiras', 'can' => 'carteiras.analisar'],

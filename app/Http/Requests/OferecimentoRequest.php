@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class OferecimentoRequest extends FormRequest
 {
@@ -12,12 +12,14 @@ class OferecimentoRequest extends FormRequest
         return $this->user() !== null;
     }
 
-    public function rules(){
+    public function rules()
+    {
         $rules = [
             'atividade_id' => 'required|exists:atividades,id',
             'edicao' => 'required|integer|min:1|max:99',
             'ano' => 'required|integer|min:2000|max:2100',
             'formas_pagamento' => 'nullable|array',
+            'formas_pagamento.*' => [Rule::in(['pix', 'boleto', 'gratuito'])],
             'atestado_medico' => 'nullable',
             'exame_dermatologico' => 'nullable',
             'limitar_matricula' => 'nullable',

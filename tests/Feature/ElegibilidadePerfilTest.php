@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Atividade;
+use App\Models\Carteira;
 use App\Models\Matricula;
 use App\Models\Oferecimento;
 use App\Models\Perfil;
@@ -22,7 +23,7 @@ class ElegibilidadePerfilTest extends TestCase
     private function turma(string $tipo = 'semestral', array $periodos = ['usp'], array $vagas = ['tax_in' => 1], ?array $perfisComTaxa = null): Turma
     {
         $atividade = Atividade::create(['nome' => 'Atividade', 'descricao' => 'd', 'tipo' => $tipo, 'status' => 'ativo']);
-        $oferecimento = Oferecimento::create(['atividade_id' => $atividade->id, 'periodo' => '01-2026', 'pagamento' => 'pix']);
+        $oferecimento = Oferecimento::create(['atividade_id' => $atividade->id, 'periodo' => '01-2026', 'pagamento' => serialize(['boleto'])]);
         foreach ($periodos as $periodo) {
             PeriodoOferecimento::create(['oferecimento_id' => $oferecimento->id, 'perfil' => $periodo, 'inicio' => now()->subDay(), 'fim' => now()->addDay()]);
         }
@@ -50,7 +51,7 @@ class ElegibilidadePerfilTest extends TestCase
     private function usuarioComCarteira(string $categoria = 'dependente_servidor'): User
     {
         $user = $this->usuario();
-        \App\Models\Carteira::create([
+        Carteira::create([
             'user_id' => $user->id, 'categoria' => $categoria,
             'nome' => $user->name, 'status' => 'ativa',
             'numero' => ($categoria === 'conveniado' ? '9163' : '9063').str_pad((string) $user->id, 4, '0', STR_PAD_LEFT),

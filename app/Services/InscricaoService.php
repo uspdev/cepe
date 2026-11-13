@@ -8,6 +8,7 @@ use App\Models\Oferecimento;
 use App\Models\Perfil;
 use App\Models\Turma;
 use App\Models\User;
+use App\Rules\Cpf;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -34,7 +35,7 @@ class InscricaoService
     public function perfisPermitidos(Turma $turma): array
     {
         $permitidos = collect($this->periodosAbertos($turma->oferecimento))
-            ->flatMap(fn ($p) => config('cepe.periodo_perfis.' . $p, []))
+            ->flatMap(fn ($p) => config('cepe.periodo_perfis.'.$p, []))
             ->unique();
 
         $configurados = $turma->vagas->pluck('perfil')->unique();
@@ -96,20 +97,16 @@ class InscricaoService
         $periodoInscricao = $this->periodoInscricaoAtual($turma->oferecimento);
         $opcoes = [];
 
-        foreach ($this->perfisPermitidos($turma) as $perfil) {
-            if (! $this->elegivel($perfil, $user)) {
-                continue;
-            }
-
+        foreach ($this->perfisComPagamentoDisponivel($turma, $user) as $perfil => $dados) {
             $vagas = $this->vagasDisponiveis($turma, $perfil);
             if ($vagas <= 0) {
                 continue;
             }
 
             $opcoes[$perfil] = [
-                'label' => config('cepe.perfil.' . $perfil, $perfil),
+                'label' => $dados['label'],
                 'vagas' => $vagas,
-            ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
+            ] + $dados;
         }
 
         return $opcoes;
@@ -143,7 +140,7 @@ class InscricaoService
         }
 
         if (! $perfil->completo()) {
-            $erros[] = 'Seu perfil está incompleto (' . implode(', ', $perfil->camposFaltantes()) . '). Complete-o em "Meu perfil" antes de se inscrever.';
+            $erros[] = 'Seu perfil está incompleto ('.implode(', ', $perfil->camposFaltantes()).'). Complete-o em "Meu perfil" antes de se inscrever.';
         }
 
         $ativas = Matricula::ativas()
@@ -204,8 +201,25 @@ class InscricaoService
         }
 
         // Elegibilidade (não disponibilidade): vagas esgotadas não bloqueiam — a fila cobre isso
-        if ($this->perfisElegiveis($turma, $user) === []) {
-            $erros[] = 'Não há vagas disponíveis para o seu perfil nesta turma.';
+        $perfisElegiveis = $this->perfisElegiveis($turma, $user);
+        $perfisComPagamento = $this->perfisComPagamentoDisponivel($turma, $user);
+        if ($perfisElegiveis === []) {
+            if (collect($this->perfisPermitidos($turma))->contains(
+                fn ($perfil) => $this->elegivel($perfil, $user)
+                    && $this->dadosPreco($turma, $user, $perfil, $this->periodoInscricaoAtual($oferecimento))['valor'] === null,
+            )) {
+                $erros[] = 'Não há taxa configurada para o seu perfil nesta turma.';
+            } else {
+                $erros[] = 'Não há vagas disponíveis para o seu perfil nesta turma.';
+            }
+        } elseif ($perfisComPagamento === []) {
+            $preco = collect($perfisElegiveis)->first(fn ($dados) => $dados['valor'] > 0)['valor'] ?? null;
+            $formas = array_intersect(['pix', 'boleto'], $oferecimento->formas_pagamento);
+            if ($preco > 0 && $formas === []) {
+                $erros[] = 'Esta atividade não oferece uma forma de pagamento on-line disponível.';
+            } elseif ($preco > 0 && ! $this->pagadorBoletoValido($user)) {
+                $erros[] = 'Informe um CPF válido e um e-mail no seu perfil para pagar on-line.';
+            }
         }
 
         return $erros;
@@ -227,21 +241,34 @@ class InscricaoService
                 continue;
             }
 
+            $preco = $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
+            if ($preco['valor'] === null) {
+                continue;
+            }
             $opcoes[$perfil] = [
-                'label' => config('cepe.perfil.' . $perfil, $perfil),
-            ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
+                'label' => config('cepe.perfil.'.$perfil, $perfil),
+            ] + $preco;
         }
 
         return $opcoes;
+    }
+
+    public function perfisComPagamentoDisponivel(Turma $turma, User $user): array
+    {
+        return array_filter(
+            $this->perfisElegiveis($turma, $user),
+            fn ($dados, $perfil) => $this->formaPagamentoDisponivel($turma, $perfil, $dados['valor'], $user),
+            ARRAY_FILTER_USE_BOTH,
+        );
     }
 
     /**
      * Efetiva a inscrição. Revalida dentro de transação com lock nas vagas da
      * turma para serializar inscrições concorrentes.
      */
-    public function inscrever(Turma $turma, User $user, string $perfil, array $metadados = []): Matricula
+    public function inscrever(Turma $turma, User $user, string $perfil, array $metadados = [], ?string $metodoPagamento = null): Matricula
     {
-        return DB::transaction(function () use ($turma, $user, $perfil, $metadados) {
+        return DB::transaction(function () use ($turma, $user, $perfil, $metadados, $metodoPagamento) {
             $turma->vagas()->lockForUpdate()->get();
 
             $erros = $this->validar($turma, $user);
@@ -261,6 +288,23 @@ class InscricaoService
             $perfilUsuario = Perfil::where('user_id', $user->id)->lockForUpdate()->first();
             $user->setRelation('perfil', $perfilUsuario);
             $preco = app(PrecoService::class)->calcular($turma, $user, $perfil, $periodoInscricao);
+            if ($preco['final'] === null) {
+                throw ValidationException::withMessages(['perfil' => 'Não há taxa configurada para este perfil nesta turma.']);
+            }
+            $valor = (int) $preco['final'];
+
+            if ($valor > 0) {
+                if (! in_array($metodoPagamento, $this->metodosPagamentoDisponiveis($turma, $user, $perfil), true)) {
+                    throw ValidationException::withMessages([
+                        'metodo_pagamento' => 'Escolha uma forma de pagamento habilitada para esta atividade.',
+                    ]);
+                }
+                if (! Cpf::valido((string) $perfilUsuario->cpf) || blank($user->email)) {
+                    throw ValidationException::withMessages([
+                        'metodo_pagamento' => 'Informe um CPF válido e um e-mail no seu perfil para pagar on-line.',
+                    ]);
+                }
+            }
 
             $matricula = Matricula::create([
                 'user_id' => $user->id,
@@ -268,7 +312,7 @@ class InscricaoService
                 'turma_id' => $turma->id,
                 'periodo_inscricao' => $periodoInscricao,
                 'periodo_oferecimento' => $oferecimento->periodo,
-                'status' => Matricula::MATRICULADA,
+                'status' => $valor > 0 ? Matricula::AGUARDANDO_PAGAMENTO : Matricula::MATRICULADA,
                 'valor_base' => $preco['base'],
                 'desconto' => $preco['desconto'],
                 'valor' => $preco['final'],
@@ -292,6 +336,38 @@ class InscricaoService
         });
     }
 
+    public function requerPagamento(Turma $turma, User $user, string $perfil): bool
+    {
+        $preco = app(PrecoService::class)->calcular(
+            $turma,
+            $user,
+            $perfil,
+            $this->periodoInscricaoAtual($turma->oferecimento),
+        );
+
+        return $preco['final'] !== null && (int) $preco['final'] > 0;
+    }
+
+    public function metodosPagamentoDisponiveis(Turma $turma, User $user, string $perfil): array
+    {
+        if (! $this->requerPagamento($turma, $user, $perfil) || ! $this->pagadorValido($user)) {
+            return [];
+        }
+
+        return array_values(array_intersect(['pix', 'boleto'], $turma->oferecimento->formas_pagamento));
+    }
+
+    private function formaPagamentoDisponivel(Turma $turma, string $perfil, ?int $valor, User $user): bool
+    {
+        return $valor !== null
+            && ($valor <= 0 || $this->metodosPagamentoDisponiveis($turma, $user, $perfil) !== []);
+    }
+
+    private function pagadorValido(User $user): bool
+    {
+        return Cpf::valido((string) $user->perfilOuNovo()->cpf) && filled($user->email);
+    }
+
     /**
      * Entrada ativa do usuário na fila da turma, ou null.
      */
@@ -308,7 +384,7 @@ class InscricaoService
      */
     public function entrarNaFila(Turma $turma, User $user, ?string $perfil = null): Fila
     {
-        $elegiveis = $this->perfisElegiveis($turma, $user);
+        $elegiveis = $this->perfisComPagamentoDisponivel($turma, $user);
 
         // Perfil único elegível: não exige escolha — registra direto na fila
         if ($perfil === null && count($elegiveis) === 1) {
@@ -380,7 +456,7 @@ class InscricaoService
         $periodoInscricao = $this->periodoInscricaoAtual($turma->oferecimento);
         $opcoes = [];
 
-        foreach (array_keys($this->perfisElegiveis($turma, $user)) as $perfil) {
+        foreach (array_keys($this->perfisComPagamentoDisponivel($turma, $user)) as $perfil) {
             if ($fila?->perfil && $perfil !== $fila->perfil) {
                 continue; // quem escolheu perfil na fila só disputa aquele bucket
             }
@@ -388,7 +464,7 @@ class InscricaoService
             $vagas = $this->vagasDisponiveis($turma, $perfil, $this->filaAFrente($turma, $fila, $perfil));
             if ($vagas > 0) {
                 $opcoes[$perfil] = [
-                    'label' => config('cepe.perfil.' . $perfil, $perfil),
+                    'label' => config('cepe.perfil.'.$perfil, $perfil),
                     'vagas' => $vagas,
                 ] + $this->dadosPreco($turma, $user, $perfil, $periodoInscricao);
             }

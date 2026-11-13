@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Turma;
-use App\Models\MatriculaMetadado;
 use Illuminate\Database\Eloquent\Model;
 
 class Matricula extends Model
 {
     public const MATRICULADA = 'matriculada';
+
+    public const AGUARDANDO_PAGAMENTO = 'aguardando_pagamento';
+
     public const CANCELADA = 'cancelada';
 
     protected $fillable = [
@@ -23,7 +23,17 @@ class Matricula extends Model
         'desconto',
         'valor',
         'credito_usado',
+        'revisao_credito_sru',
+        'revisao_credito_sru_em',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'revisao_credito_sru' => 'boolean',
+            'revisao_credito_sru_em' => 'datetime',
+        ];
+    }
 
     public function user()
     {
@@ -45,6 +55,11 @@ class Matricula extends Model
         return $this->hasMany(Presenca::class);
     }
 
+    public function cobrancas()
+    {
+        return $this->hasMany(Cobranca::class)->orderBy('parcela');
+    }
+
     /** Matrículas que ocupam vaga: qualquer status exceto cancelada. */
     public function scopeAtivas($query)
     {
@@ -53,12 +68,12 @@ class Matricula extends Model
 
     public function getStatusNomeAttribute(): string
     {
-        return config('cepe.status_matricula.' . $this->status, $this->status);
+        return config('cepe.status_matricula.'.$this->status, $this->status);
     }
 
     public function getPerfilNomeAttribute(): string
     {
-        return config('cepe.perfil.' . $this->perfil, $this->perfil);
+        return config('cepe.perfil.'.$this->perfil, $this->perfil);
     }
 
     public function metadado(string $chave): ?string

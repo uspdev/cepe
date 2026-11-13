@@ -26,8 +26,10 @@
                     </thead>
                     <tbody>
                         @forelse($matriculas as $matricula)
-                            @php($turma = $matricula->turma)
-                            @php($oferecimento = $turma?->oferecimento)
+                            @php
+                                $turma = $matricula->turma;
+                                $oferecimento = $turma?->oferecimento;
+                            @endphp
                             <tr>
                                 <td>{{ $oferecimento?->atividade?->nome ?? '—' }}</td>
                                 <td class="small">
@@ -54,6 +56,33 @@
                                     <span class="badge {{ $matricula->status === 'matriculada' ? 'bg-success' : 'bg-secondary' }}">
                                         {{ $matricula->status_nome }}
                                     </span>
+                                    @foreach($matricula->cobrancas as $cobranca)
+                                        <div class="small mt-1">
+                                            Parcela {{ $cobranca->parcela }}/{{ $cobranca->total_parcelas }}:
+                                            R$ {{ number_format($cobranca->valorReais(), 2, ',', '.') }}
+                                            · vence em {{ $cobranca->vencimento->format('d/m/Y') }}
+                                            · {{ $cobranca->status_nome }}
+                                            @if($cobranca->metodo === \App\Models\Cobranca::PIX)
+                                                @if($cobranca->expira_em)
+                                                    · expira em {{ $cobranca->expira_em->timezone(config('cepe.fuso_frequencia'))->format('d/m/Y H:i') }}
+                                                @endif
+                                                @if($cobranca->status === \App\Models\Cobranca::EMITIDA && $cobranca->pix_qr_code_img_base64)
+                                                    <div class="mt-2">
+                                                        <img src="data:image/png;base64,{{ $cobranca->pix_qr_code_img_base64 }}" alt="QR Code Pix" width="160" height="160">
+                                                    </div>
+                                                @endif
+                                                @if($cobranca->status === \App\Models\Cobranca::EMITIDA && $cobranca->pix_copia_cola)
+                                                    <div class="mt-2">
+                                                        <label for="pix-{{ $cobranca->id }}">Código Pix copia e cola</label>
+                                                        <textarea id="pix-{{ $cobranca->id }}" class="form-control" rows="3" readonly>{{ $cobranca->pix_copia_cola }}</textarea>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary mt-1" onclick="navigator.clipboard.writeText(document.getElementById('pix-{{ $cobranca->id }}').value)">Copiar código Pix</button>
+                                                    </div>
+                                                @endif
+                                            @elseif($cobranca->codigo_boleto)
+                                                · <a href="{{ route('minhas-inscricoes.boletos.pdf', [$matricula, $cobranca]) }}">Ver boleto</a>
+                                            @endif
+                                        </div>
+                                    @endforeach
                                     @if($matricula->presencas->isNotEmpty())
                                         <div class="small text-muted mt-1">
                                             Presenças: {{ $matricula->presencas->where('status', \App\Models\Presenca::PRESENTE)->count() }}
@@ -70,7 +99,7 @@
                                             </form>
                                         @endif
                                     @endcan
-                                    @if($matricula->status === 'matriculada')
+                                    @if(in_array($matricula->status, [\App\Models\Matricula::MATRICULADA, \App\Models\Matricula::AGUARDANDO_PAGAMENTO], true))
                                         <form method="POST" action="{{ route('minhas-inscricoes.cancelar', $matricula) }}" class="d-inline">
                                             @csrf
                                             @method('PATCH')
